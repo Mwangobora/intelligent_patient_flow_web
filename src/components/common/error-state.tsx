@@ -6,12 +6,14 @@ type ErrorStateProps = {
   title: string;
   description: string;
   actionLabel?: string;
+  onAction?: () => void;
 };
 
 export function ErrorState({
   title,
   description,
   actionLabel,
+  onAction,
 }: ErrorStateProps) {
   return (
     <div className="flex flex-col items-center justify-center rounded-xl border border-danger/20 bg-card px-6 py-12 text-center">
@@ -23,7 +25,7 @@ export function ErrorState({
         {description}
       </p>
       {actionLabel ? (
-        <Button variant="secondary" className="mt-5">
+        <Button variant="secondary" className="mt-5" onClick={onAction}>
           {actionLabel}
         </Button>
       ) : null}

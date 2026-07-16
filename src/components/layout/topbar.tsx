@@ -7,9 +7,13 @@ import { useUiStore } from "@/stores/use-ui-store";
 
 type TopbarProps = {
   pageTitle: string;
+  userDisplayName?: string;
 };
 
-export function Topbar({ pageTitle }: TopbarProps) {
+export function Topbar({
+  pageTitle,
+  userDisplayName = "Operations Admin",
+}: TopbarProps) {
   const { toggleSidebar } = useUiStore();
 
   return (
@@ -43,7 +47,7 @@ export function Topbar({ pageTitle }: TopbarProps) {
         </Button>
         <Button variant="secondary" className="gap-2" aria-label="User menu">
           <UserRound className="h-4 w-4" />
-          <span className="hidden sm:inline">Operations Admin</span>
+          <span className="hidden sm:inline">{userDisplayName}</span>
         </Button>
       </div>
     </header>

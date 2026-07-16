@@ -7,7 +7,7 @@ const createModuleKeys = <T extends string>(module: T) => ({
 export const queryKeys = {
   auth: {
     all: ["auth"] as const,
-    session: () => ["auth", "session"] as const,
+    currentUser: () => ["auth", "current-user"] as const,
   },
   dashboard: {
     all: ["dashboard"] as const,

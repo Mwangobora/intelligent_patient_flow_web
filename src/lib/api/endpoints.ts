@@ -1,7 +1,11 @@
 export const apiEndpoints = {
   auth: {
-    base: "/accounts",
-    docs: "/docs/",
+    base: "/auth",
+    login: "/auth/login/",
+    logout: "/auth/logout/",
+    refresh: "/auth/refresh/",
+    me: "/auth/me/",
+    changePassword: "/auth/change-password/",
   },
   facilities: { base: "/facilities" },
   patients: { base: "/patients" },

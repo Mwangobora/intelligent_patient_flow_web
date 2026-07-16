@@ -17,6 +17,14 @@ export const apiEndpoints = {
   notifications: { base: "/notifications" },
   reporting: {
     base: "/reporting",
+    exports: "/reporting/exports/",
+    analytics: {
+      patientWaitingTime: "/reporting/analytics/patient-waiting-time/",
+      appointmentUtilization: "/reporting/analytics/appointment-utilization/",
+      doctorWorkload: "/reporting/analytics/doctor-workload/",
+      dailyAttendance: "/reporting/analytics/daily-attendance/",
+      predictionAccuracy: "/reporting/analytics/prediction-accuracy/",
+    },
     dashboard: {
       overview: "/reporting/dashboard/overview/",
       appointments: "/reporting/dashboard/appointments/",

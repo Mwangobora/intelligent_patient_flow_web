@@ -42,6 +42,9 @@ export const permissionCodes = {
   intelligencePredictionView: "intelligence_prediction.view",
   notificationsNotificationView: "notifications_notification.view",
   reportingReportView: "reporting_report.view",
+  reportingReportGenerate: "reporting_report.generate",
+  reportingReportDownload: "reporting_report.download",
+  reportingReportCancel: "reporting_report.cancel",
   auditLogView: "audit_log.view",
 } as const;
 

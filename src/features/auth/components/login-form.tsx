@@ -15,7 +15,11 @@ import { getErrorMessage } from "@/lib/api/api-error";
 import { useLoginMutation } from "../hooks/use-auth-mutations";
 import { loginSchema, type LoginFormValues } from "../schemas/auth.schemas";
 
-export function LoginForm() {
+type LoginFormProps = {
+  nextPath: string;
+};
+
+export function LoginForm({ nextPath }: LoginFormProps) {
   const router = useRouter();
   const loginMutation = useLoginMutation();
   const [formError, setFormError] = useState<string | null>(null);
@@ -33,7 +37,7 @@ export function LoginForm() {
         password: values.password,
       });
       toast.success(`Welcome back, ${response.user.first_name || response.user.email}.`);
-      startTransition(() => router.push("/"));
+      startTransition(() => router.replace(nextPath));
     } catch (error) {
       const message = getErrorMessage(error);
       setFormError(message);

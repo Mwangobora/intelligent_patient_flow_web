@@ -52,6 +52,10 @@ export function AuthGuard({ children }: AuthGuardProps) {
         description="We could not confirm access to the workspace. Please try again."
         actionLabel="Retry"
         onAction={() => void refetch()}
+        secondaryActionLabel="Go to login"
+        onSecondaryAction={() =>
+          router.replace(`/login?next=${encodeURIComponent(pathname)}`)
+        }
       />
     );
   }

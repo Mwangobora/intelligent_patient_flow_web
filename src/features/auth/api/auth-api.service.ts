@@ -8,10 +8,6 @@ import type {
   LogoutResponse,
 } from "../types/auth.types";
 
-type LogoutPayload = {
-  refresh: string;
-};
-
 type ChangePasswordPayload = {
   old_password: string;
   new_password: string;
@@ -23,8 +19,8 @@ class AuthApiService {
     return response.data;
   }
 
-  async logout(payload: LogoutPayload): Promise<LogoutResponse> {
-    await apiClient.post(apiEndpoints.auth.logout, payload);
+  async logout(): Promise<LogoutResponse> {
+    await apiClient.post(apiEndpoints.auth.logout);
   }
 
   async getCurrentUser(): Promise<CurrentUserResponse> {
@@ -32,11 +28,8 @@ class AuthApiService {
     return response.data;
   }
 
-  async refreshSession(payload: LogoutPayload): Promise<{ access: string }> {
-    const response = await apiClient.post<{ access: string }>(
-      apiEndpoints.auth.refresh,
-      payload,
-    );
+  async refreshSession(): Promise<{ detail: string }> {
+    const response = await apiClient.post<{ detail: string }>(apiEndpoints.auth.refresh);
     return response.data;
   }
 

@@ -36,8 +36,6 @@ export type LoginRequest = {
 };
 
 export type LoginResponse = {
-  access: string;
-  refresh: string;
   user: AuthUser;
 };
 

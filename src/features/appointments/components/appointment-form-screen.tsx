@@ -8,6 +8,7 @@ import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { ResponsiveActionBar } from "@/components/layout/responsive-action-bar";
 import { SectionCard } from "@/components/common/section-card";
+import { ScopeNotice } from "@/components/common/scope-notice";
 import { Button } from "@/components/ui/button";
 import { useCurrentUserQuery } from "@/features/auth/hooks/use-auth-queries";
 
@@ -31,9 +32,6 @@ export function AppointmentFormScreen({
   if (isUserLoading || (mode === "reschedule" && appointmentQuery.isLoading)) {
     return <LoadingState title="Preparing appointment form" description="Loading lookup data and current appointment details." />;
   }
-  if (!activeMembership?.organization) {
-    return <ErrorState title="No appointment scope available" description="We could not determine an organization scope for this booking flow." />;
-  }
   if (mode === "reschedule" && appointmentQuery.error) {
     return <ErrorState title="Unable to load appointment" description={appointmentQuery.error.message} actionLabel="Retry" onAction={() => void appointmentQuery.refetch()} />;
   }
@@ -51,6 +49,12 @@ export function AppointmentFormScreen({
       <ResponsiveActionBar>
         <Link href={mode === "create" ? "/appointments" : `/appointments/${appointmentId}`}><Button variant="secondary">Back</Button></Link>
       </ResponsiveActionBar>
+      {!activeMembership?.organization ? (
+        <ScopeNotice
+          title="No appointment booking scope linked yet"
+          description="This account is signed in, but it is not linked to an organization membership yet. Booking will become available as soon as organization or facility access is assigned."
+        />
+      ) : null}
       {mode === "reschedule" && appointmentQuery.data ? (
         <SectionCard title="Current booking" description="The original time will be replaced after rescheduling succeeds.">
           <p className="text-sm text-foreground">
@@ -59,9 +63,11 @@ export function AppointmentFormScreen({
           </p>
         </SectionCard>
       ) : null}
-      <SectionCard title={mode === "create" ? "Booking form" : "New slot selection"} description="Use real backend slot availability before saving.">
-        <AppointmentForm mode={mode} organizationId={activeMembership.organization} defaultFacilityId={activeMembership.facility ?? undefined} appointment={appointmentQuery.data} />
-      </SectionCard>
+      {activeMembership?.organization ? (
+        <SectionCard title={mode === "create" ? "Booking form" : "New slot selection"} description="Use real backend slot availability before saving.">
+          <AppointmentForm mode={mode} organizationId={activeMembership.organization} defaultFacilityId={activeMembership.facility ?? undefined} appointment={appointmentQuery.data} />
+        </SectionCard>
+      ) : null}
     </PageContainer>
   );
 }

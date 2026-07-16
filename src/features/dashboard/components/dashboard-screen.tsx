@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 
 import { ErrorState } from "@/components/common/error-state";
 import { LoadingState } from "@/components/common/loading-state";
+import { ScopeNotice } from "@/components/common/scope-notice";
 import { StatusBadge } from "@/components/common/status-badge";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
@@ -24,6 +25,92 @@ import { PractitionerWorkloadPanel } from "./practitioner-workload-panel";
 import { QueueSummaryPanel } from "./queue-summary-panel";
 
 const today = format(new Date(), "yyyy-MM-dd");
+const emptyOverviewSummary = {
+  total_patients: 0,
+  total_appointments_today: 0,
+  total_checkins_today: 0,
+  total_waiting_now: 0,
+  total_called_now: 0,
+  total_in_service_now: 0,
+  completed_visits_today: 0,
+  cancelled_appointments_today: 0,
+  no_show_appointments_today: 0,
+  average_wait_minutes_today: null,
+  active_queues: 0,
+  generated_at: new Date().toISOString(),
+};
+
+const emptyAppointmentSummary = {
+  appointments_total: 0,
+  pending: 0,
+  confirmed: 0,
+  checked_in: 0,
+  queued: 0,
+  in_service: 0,
+  completed: 0,
+  cancelled: 0,
+  no_show: 0,
+  rescheduled: 0,
+  appointments_by_status: [],
+  appointments_by_specialty: [],
+  appointments_by_hour: [],
+  appointment_utilization_percentage: null,
+  generated_at: new Date().toISOString(),
+};
+
+const emptyQueueSummary = {
+  active_queues: 0,
+  waiting_patients: 0,
+  called_patients: 0,
+  in_service_patients: 0,
+  skipped_patients: 0,
+  completed_today: 0,
+  cancelled_today: 0,
+  transferred_today: 0,
+  average_wait_minutes: null,
+  longest_wait_minutes: null,
+  queues_by_service_point: [],
+  next_entries_summary: [],
+  generated_at: new Date().toISOString(),
+};
+
+const emptyCheckinSummary = {
+  total_checkins: 0,
+  appointment_checkins: 0,
+  walkin_checkins: 0,
+  qr_checkins: 0,
+  reception_checkins: 0,
+  mobile_checkins: 0,
+  self_service_checkins: 0,
+  voided_checkins: 0,
+  checkins_by_hour: [],
+  checkins_by_method: [],
+  generated_at: new Date().toISOString(),
+};
+
+const emptyPractitionerSummary = {
+  active_practitioners_today: 0,
+  practitioners_on_shift_now: 0,
+  scheduled_shifts: 0,
+  completed_shifts: 0,
+  cancelled_shifts: 0,
+  total_scheduled_hours: 0,
+  completed_appointments_by_practitioner: [],
+  average_service_time_by_practitioner: [],
+  workload_summary: [],
+  generated_at: new Date().toISOString(),
+};
+
+const emptyIntelligenceSummary = {
+  predictions_generated: 0,
+  rule_based_predictions: 0,
+  machine_learning_predictions: 0,
+  average_predicted_wait_minutes: null,
+  average_actual_wait_minutes: null,
+  average_prediction_error_minutes: null,
+  latest_predictions_summary: [],
+  generated_at: new Date().toISOString(),
+};
 
 export function DashboardScreen() {
   const { data: currentUser, isLoading: isUserLoading } = useCurrentUserQuery();
@@ -83,15 +170,6 @@ export function DashboardScreen() {
     );
   }
 
-  if (!activeMembership && !hasScope) {
-    return (
-      <ErrorState
-        title="No dashboard scope available"
-        description="We could not determine an organization or facility scope for this account."
-      />
-    );
-  }
-
   const refreshAll = async () => {
     await Promise.all([
       overviewQuery.refetch(),
@@ -105,7 +183,7 @@ export function DashboardScreen() {
 
   const scopeLabel = activeMembership?.facility_name
     ? `${activeMembership.facility_name} facility dashboard`
-    : `${activeMembership?.organization_name ?? "Current organization"} dashboard`;
+    : `${activeMembership?.organization_name ?? "Unassigned dashboard scope"}`;
   const facilityPlaceholder =
     activeMembership?.facility_name ?? "Facility selector will be wired to facilities APIs next.";
   const isRefreshing = [
@@ -116,6 +194,12 @@ export function DashboardScreen() {
     practitionerQuery,
     intelligenceQuery,
   ].some((query) => query.isFetching);
+  const overviewSummary = hasScope ? overviewQuery.data : emptyOverviewSummary;
+  const appointmentSummary = hasScope ? appointmentsQuery.data : emptyAppointmentSummary;
+  const queueSummary = hasScope ? queueQuery.data : emptyQueueSummary;
+  const checkinSummary = hasScope ? checkinQuery.data : emptyCheckinSummary;
+  const practitionerSummary = hasScope ? practitionerQuery.data : emptyPractitionerSummary;
+  const intelligenceSummary = hasScope ? intelligenceQuery.data : emptyIntelligenceSummary;
 
   return (
     <PageContainer className="space-y-6">
@@ -125,7 +209,11 @@ export function DashboardScreen() {
         actions={
           <>
             <StatusBadge label="Live Dashboard" status="success" />
-            <Button variant="secondary" onClick={() => void refreshAll()} disabled={isRefreshing}>
+            <Button
+              variant="secondary"
+              onClick={() => void refreshAll()}
+              disabled={!hasScope || isRefreshing}
+            >
               <RefreshCw className="mr-2 h-4 w-4" />
               Refresh
             </Button>
@@ -143,36 +231,43 @@ export function DashboardScreen() {
         onDateToChange={(date_to) => setDateFilters((current) => ({ ...current, date_to }))}
       />
 
+      {!hasScope ? (
+        <ScopeNotice
+          title="No dashboard scope linked yet"
+          description="This account is signed in, but no organization or facility membership is attached yet. The dashboard stays visible with empty cards and panels so the workspace is still ready once scope access is assigned."
+        />
+      ) : null}
+
       <DashboardOverviewCards
-        summary={overviewQuery.data}
-        isLoading={overviewQuery.isLoading}
-        errorMessage={overviewQuery.error?.message}
+        summary={overviewSummary}
+        isLoading={hasScope ? overviewQuery.isLoading : false}
+        errorMessage={hasScope ? overviewQuery.error?.message : undefined}
         onRetry={() => void overviewQuery.refetch()}
       />
 
       <section className="grid gap-6 xl:grid-cols-2">
         <AppointmentStatusChart
-          summary={appointmentsQuery.data}
-          isLoading={appointmentsQuery.isLoading}
-          errorMessage={appointmentsQuery.error?.message}
+          summary={appointmentSummary}
+          isLoading={hasScope ? appointmentsQuery.isLoading : false}
+          errorMessage={hasScope ? appointmentsQuery.error?.message : undefined}
           onRetry={() => void appointmentsQuery.refetch()}
         />
         <QueueSummaryPanel
-          summary={queueQuery.data}
-          isLoading={queueQuery.isLoading}
-          errorMessage={queueQuery.error?.message}
+          summary={queueSummary}
+          isLoading={hasScope ? queueQuery.isLoading : false}
+          errorMessage={hasScope ? queueQuery.error?.message : undefined}
           onRetry={() => void queueQuery.refetch()}
         />
         <CheckinTrendChart
-          summary={checkinQuery.data}
-          isLoading={checkinQuery.isLoading}
-          errorMessage={checkinQuery.error?.message}
+          summary={checkinSummary}
+          isLoading={hasScope ? checkinQuery.isLoading : false}
+          errorMessage={hasScope ? checkinQuery.error?.message : undefined}
           onRetry={() => void checkinQuery.refetch()}
         />
         <PractitionerWorkloadPanel
-          summary={practitionerQuery.data}
-          isLoading={practitionerQuery.isLoading}
-          errorMessage={practitionerQuery.error?.message}
+          summary={practitionerSummary}
+          isLoading={hasScope ? practitionerQuery.isLoading : false}
+          errorMessage={hasScope ? practitionerQuery.error?.message : undefined}
           onRetry={() => void practitionerQuery.refetch()}
         />
       </section>
@@ -184,9 +279,9 @@ export function DashboardScreen() {
           actions={<BrainCircuit className="h-5 w-5 text-primary" />}
         />
         <IntelligenceSummaryPanel
-          summary={intelligenceQuery.data}
-          isLoading={intelligenceQuery.isLoading}
-          errorMessage={intelligenceQuery.error?.message}
+          summary={intelligenceSummary}
+          isLoading={hasScope ? intelligenceQuery.isLoading : false}
+          errorMessage={hasScope ? intelligenceQuery.error?.message : undefined}
           onRetry={() => void intelligenceQuery.refetch()}
         />
       </section>

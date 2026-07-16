@@ -8,6 +8,7 @@ import { useMemo, useState } from "react";
 import { EmptyState } from "@/components/common/empty-state";
 import { ErrorState } from "@/components/common/error-state";
 import { LoadingState } from "@/components/common/loading-state";
+import { ScopeNotice } from "@/components/common/scope-notice";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { ResponsiveActionBar } from "@/components/layout/responsive-action-bar";
@@ -65,6 +66,7 @@ export function AppointmentsListScreen() {
     currentUser?.is_staff ||
     !currentUser?.permissions ||
     currentUser.permissions.includes(permissionCodes.schedulingAppointmentView);
+  const hasScope = Boolean(activeMembership?.organization || activeMembership?.facility);
 
   const facilitiesQuery = useFacilitiesLookupQuery(
     { organization_id: activeMembership?.organization, is_active: true },
@@ -94,7 +96,7 @@ export function AppointmentsListScreen() {
       starts_from: buildDateTimeRange(filters.starts_from),
       ends_to: buildDateTimeRange(filters.ends_to, true),
     },
-    { enabled: hasPermission && Boolean(activeMembership?.organization || activeMembership?.facility) },
+    { enabled: hasPermission && hasScope },
   );
 
   const patientSummaryQueries = useAppointmentPatientsSummaryQuery(
@@ -122,9 +124,6 @@ export function AppointmentsListScreen() {
   if (!hasPermission) {
     return <ErrorState title="Appointments access required" description="You do not have permission to view appointment scheduling." />;
   }
-  if (!activeMembership) {
-    return <ErrorState title="No appointment scope available" description="We could not determine a facility or organization scope for this account." />;
-  }
 
   const handleCancel = async (appointment: AppointmentRecord) => {
     const reason = window.prompt("Enter a cancellation reason for this appointment.");
@@ -145,7 +144,7 @@ export function AppointmentsListScreen() {
         actions={
           <ResponsiveActionBar>
             <Link href="/appointments/new"><Button><CalendarClock className="mr-2 h-4 w-4" />New appointment</Button></Link>
-            <Button variant="secondary" onClick={() => void appointmentsQuery.refetch()}>
+            <Button variant="secondary" onClick={() => void appointmentsQuery.refetch()} disabled={!hasScope}>
               <RefreshCw className="mr-2 h-4 w-4" />Refresh
             </Button>
           </ResponsiveActionBar>
@@ -156,24 +155,43 @@ export function AppointmentsListScreen() {
               <TextInputField label="Date from" type="date" value={filters.starts_from} onChange={(event) => setFilters((current) => ({ ...current, starts_from: event.target.value }))} />
               <TextInputField label="Date to" type="date" value={filters.ends_to} onChange={(event) => setFilters((current) => ({ ...current, ends_to: event.target.value }))} />
               <SelectField label="Status" options={statusOptions} value={filters.status} onChange={(event) => setFilters((current) => ({ ...current, status: event.target.value as AppointmentStatus | "" }))} />
-              <SelectField label="Facility" options={[{ label: "All facilities", value: "" }, ...(facilitiesQuery.data ?? []).map((facility) => ({ label: facility.name, value: facility.id }))]} value={filters.facility_id} onChange={(event) => setFilters((current) => ({ ...current, facility_id: event.target.value, facility_specialty_id: "", practitioner_id: "" }))} />
-              <SelectField label="Specialty" options={[{ label: "All services", value: "" }, ...(specialtiesQuery.data ?? []).map((specialty) => ({ label: specialty.specialty_name, value: specialty.id }))]} value={filters.facility_specialty_id} onChange={(event) => setFilters((current) => ({ ...current, facility_specialty_id: event.target.value }))} />
-              <SelectField label="Practitioner" options={[{ label: "All practitioners", value: "" }, ...(practitionersQuery.data ?? []).map((practitioner) => ({ label: `${practitioner.first_name} ${practitioner.last_name}`, value: practitioner.id }))]} value={filters.practitioner_id} onChange={(event) => setFilters((current) => ({ ...current, practitioner_id: event.target.value }))} />
+              <SelectField label="Facility" options={[{ label: "All facilities", value: "" }, ...(facilitiesQuery.data ?? []).map((facility) => ({ label: facility.name, value: facility.id }))]} value={filters.facility_id} onChange={(event) => setFilters((current) => ({ ...current, facility_id: event.target.value, facility_specialty_id: "", practitioner_id: "" }))} disabled={!hasScope} />
+              <SelectField label="Specialty" options={[{ label: "All services", value: "" }, ...(specialtiesQuery.data ?? []).map((specialty) => ({ label: specialty.specialty_name, value: specialty.id }))]} value={filters.facility_specialty_id} onChange={(event) => setFilters((current) => ({ ...current, facility_specialty_id: event.target.value }))} disabled={!hasScope} />
+              <SelectField label="Practitioner" options={[{ label: "All practitioners", value: "" }, ...(practitionersQuery.data ?? []).map((practitioner) => ({ label: `${practitioner.first_name} ${practitioner.last_name}`, value: practitioner.id }))]} value={filters.practitioner_id} onChange={(event) => setFilters((current) => ({ ...current, practitioner_id: event.target.value }))} disabled={!hasScope} />
               <TextInputField label="Practitioner search" placeholder="Search practitioner name" value={searchText} onChange={(event) => setSearchText(event.target.value)} />
               <TextInputField label="Patient search" placeholder="Search patient name locally" value={patientSearch} onChange={(event) => setPatientSearch(event.target.value)} />
-              <SelectField label="Patient match" options={[{ label: "All patients", value: "" }, ...Object.entries(patientNames).filter(([, name]) => name.toLowerCase().includes(debouncedPatientSearch.toLowerCase())).map(([id, name]) => ({ label: name, value: id }))]} value={filters.patient_id} onChange={(event) => setFilters((current) => ({ ...current, patient_id: event.target.value }))} />
+              <SelectField label="Patient match" options={[{ label: "All patients", value: "" }, ...Object.entries(patientNames).filter(([, name]) => name.toLowerCase().includes(debouncedPatientSearch.toLowerCase())).map(([id, name]) => ({ label: name, value: id }))]} value={filters.patient_id} onChange={(event) => setFilters((current) => ({ ...current, patient_id: event.target.value }))} disabled={!hasScope} />
             </div>
           </ResponsiveFilterPanel>
         }
       >
+        {!hasScope ? (
+          <ScopeNotice
+            title="No scheduling scope linked yet"
+            description="This account is signed in, but it is not linked to an organization or facility membership yet. Filters, tables, and actions stay visible so the scheduling workspace is still ready once scope access is assigned."
+          />
+        ) : null}
         {appointmentsQuery.isLoading ? <LoadingState title="Loading appointments" description="Fetching appointment records and status information." /> : null}
         {appointmentsQuery.error ? (
           <ErrorState title="Unable to load appointments" description={appointmentsQuery.error.message} actionLabel="Retry" onAction={() => void appointmentsQuery.refetch()} />
         ) : null}
-        {!appointmentsQuery.isLoading && !appointmentsQuery.error && !appointmentsQuery.data?.length ? (
+        {!hasScope ? (
+          <div className="space-y-4">
+            <AppointmentsTable
+              appointments={[]}
+              patientNames={{}}
+              onCancel={handleCancel}
+              emptyMessage="No organization or facility scope is attached to this account yet."
+            />
+            <div className="rounded-xl border border-dashed border-border bg-card px-4 py-8 text-center text-sm text-muted-foreground md:hidden">
+              No organization or facility scope is attached to this account yet.
+            </div>
+          </div>
+        ) : null}
+        {hasScope && !appointmentsQuery.isLoading && !appointmentsQuery.error && !appointmentsQuery.data?.length ? (
           <EmptyState title="No appointments found" description="Try adjusting the filters or create a new appointment." />
         ) : null}
-        {appointmentsQuery.data?.length ? (
+        {hasScope && appointmentsQuery.data?.length ? (
           <div className="space-y-4">
             <AppointmentsTable appointments={appointmentsQuery.data} patientNames={patientNames} onCancel={handleCancel} />
             <div className="space-y-4 md:hidden">

@@ -36,19 +36,18 @@ export function LoginPageShell({ nextPath }: LoginPageShellProps) {
   }
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-background px-6 py-10">
-      <div className="absolute inset-x-0 top-0 h-72 bg-secondary/60" />
-      <div className="relative z-10 mx-auto grid min-h-[calc(100vh-5rem)] max-w-7xl items-center gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(420px,520px)]">
-        <section className="order-2 lg:order-1 lg:pr-10">
+    <main className="min-h-screen bg-background lg:h-screen lg:overflow-hidden">
+      <div className="mx-auto grid min-h-screen max-w-[1600px] lg:h-screen lg:grid-cols-[1.1fr_0.9fr]">
+        <section className="hidden lg:flex lg:h-screen lg:overflow-hidden">
+          <LoginBrandPanel />
+        </section>
+        <section className="flex min-h-screen items-center justify-center px-6 py-10 sm:px-10 lg:min-h-0 lg:px-14 lg:py-12 xl:px-20">
           <AuthCard
             title="Welcome back"
             description="Sign in to manage hospital patient flow."
           >
             <LoginForm nextPath={nextPath} />
           </AuthCard>
-        </section>
-        <section className="order-1 lg:order-2">
-          <LoginBrandPanel />
         </section>
       </div>
     </main>

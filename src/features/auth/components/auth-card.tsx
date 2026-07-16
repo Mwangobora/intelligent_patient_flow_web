@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Hospital } from "lucide-react";
 
 type AuthCardProps = {
   title: string;
@@ -10,17 +10,24 @@ type AuthCardProps = {
 
 export function AuthCard({ title, description, children }: AuthCardProps) {
   return (
-    <Card className="w-full max-w-md border-border shadow-md">
-      <CardHeader className="space-y-3 text-center">
-        <div className="mx-auto inline-flex rounded-full bg-secondary px-4 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-primary">
-          Intelligent Patient Flow
+    <section className="w-full max-w-[420px] space-y-10 py-4">
+      <div className="space-y-7">
+        <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary text-primary shadow-sm">
+          <Hospital className="h-7 w-7" />
         </div>
-        <div className="space-y-1">
-          <CardTitle className="text-2xl">{title}</CardTitle>
-          <p className="text-sm text-muted-foreground">{description}</p>
+        <div className="space-y-3">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+            Intelligent Patient Flow
+          </p>
+          <h1 className="text-3xl font-semibold tracking-tight text-foreground">
+            {title}
+          </h1>
+          <p className="max-w-sm text-sm leading-7 text-muted-foreground">
+            {description}
+          </p>
         </div>
-      </CardHeader>
-      <CardContent>{children}</CardContent>
-    </Card>
+      </div>
+      <div className="space-y-6">{children}</div>
+    </section>
   );
 }

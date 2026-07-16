@@ -1,0 +1,26 @@
+const createModuleKeys = <T extends string>(module: T) => ({
+  all: [module] as const,
+  lists: () => [module, "list"] as const,
+  detail: (id: string) => [module, "detail", id] as const,
+});
+
+export const queryKeys = {
+  auth: {
+    all: ["auth"] as const,
+    session: () => ["auth", "session"] as const,
+  },
+  dashboard: {
+    all: ["dashboard"] as const,
+    overview: (scope: string) => ["dashboard", "overview", scope] as const,
+  },
+  appointments: createModuleKeys("appointments"),
+  queueing: createModuleKeys("queueing"),
+  checkins: createModuleKeys("checkins"),
+  patients: createModuleKeys("patients"),
+  practitioners: createModuleKeys("practitioners"),
+  facilities: createModuleKeys("facilities"),
+  intelligence: createModuleKeys("intelligence"),
+  notifications: createModuleKeys("notifications"),
+  reporting: createModuleKeys("reporting"),
+  audit: createModuleKeys("audit"),
+};

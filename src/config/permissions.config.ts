@@ -1,6 +1,11 @@
 export const permissionCodes = {
   reportingAnalyticsView: "reporting_analytics.view",
   schedulingAppointmentView: "scheduling_appointment.view",
+  schedulingAppointmentCreate: "scheduling_appointment.create",
+  schedulingAppointmentUpdate: "scheduling_appointment.update",
+  schedulingAppointmentCancel: "scheduling_appointment.cancel",
+  schedulingAppointmentReschedule: "scheduling_appointment.reschedule",
+  schedulingAppointmentAssign: "scheduling_appointment.assign",
   queueingEntryView: "queueing_entry.view",
   checkinsCheckinView: "checkins_checkin.view",
   patientsPatientView: "patients_patient.view",

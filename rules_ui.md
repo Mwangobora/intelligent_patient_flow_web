@@ -1,389 +1,615 @@
-Continue the frontend for the Intelligent Patient Flow and Appointment Scheduling System.
+Build Objective 1 frontend: Online Appointment Scheduling Module for staff side.
 
-App shell, sidebar, topbar, navigation UI, and clean folder structure are already created.
+This is staff web dashboard, not patient mobile app yet.
 
-Now do PART 1D ONLY:
-Auth frontend foundation + consistent form system.
+Before coding:
+- Read backend Swagger/OpenAPI carefully.
+- Use the real backend endpoints.
+- Do not guess API paths.
+- Do not use fake data when API exists.
+- If an endpoint is missing or response shape is unclear, report it instead of inventing.
 
-Do not build patient pages yet.
-Do not build appointments yet.
-Do not build queue pages yet.
-Do not build dashboard API cards yet.
-Do not build all modules yet.
+Goal:
+Create clean, fast, responsive, interactive appointment scheduling UI for hospital staff.
 
-Important UI rule:
-All forms in the system must look consistent.
-Forms must be clean, simple, serious, and hospital-friendly.
-No overdesign.
-No unnecessary gradients.
-No noisy borders.
-No childish colors.
-No random spacing.
-No random input styles.
+Scope:
+- appointment list
+- appointment detail
+- create appointment
+- reschedule appointment
+- cancel appointment
+- appointment status history
+- available slot selection
+- patient search/select inside booking form
+- facility/specialty/practitioner/slot selection using backend APIs
 
-Critical code rules:
-- Maximum 150 lines per file where practical.
-- If file becomes large, split it.
-- Use reusable components.
-- Use TypeScript properly.
-- Avoid any.
-- No API calls directly inside UI components.
-- Use TanStack Query for server/API state.
-- Use Zustand only for local UI state.
-- Do not store access tokens in localStorage.
-- Do not store refresh tokens in localStorage.
-- Backend uses HttpOnly cookie flow, so Axios must use withCredentials: true.
-- Keep auth flow prepared for cookie-based authentication.
-- Use existing Trust Teal + Navy theme tokens.
+Do not build:
+- full patient module
+- full doctor schedule module
+- queue module
+- check-in module
+- patient mobile app
 
-Professional API naming convention:
-Use class-based API services.
-
-For every backend module later, we will use this pattern:
-
-features/{module}/
+Use the existing frontend architecture:
+features/appointments/
   api/
-    {module}-api.service.ts
   hooks/
-    use-{module}-queries.ts
-    use-{module}-mutations.ts
   schemas/
-    {module}.schemas.ts
   types/
-    {module}.types.ts
   components/
 
-For Auth specifically create:
-
-features/auth/
-  api/
-    auth-api.service.ts
-  hooks/
-    use-auth-queries.ts
-    use-auth-mutations.ts
-  schemas/
-    auth.schemas.ts
-  types/
-    auth.types.ts
-  components/
-    login-form.tsx
-    auth-card.tsx
-    auth-guard.tsx
-
-Do not use names like AuthApis or authApis.
 Use professional naming:
-- AuthApiService
-- authApiService
-- useLoginMutation
-- useLogoutMutation
-- useCurrentUserQuery
-
-PART 1D TASKS
-
-1. Inspect backend Swagger/OpenAPI or existing endpoint constants.
-
-Find the real auth endpoints from the backend.
-Do not guess if the exact routes exist in Swagger/docs.
-
-Expected auth actions may include:
-- login
-- logout
-- refresh token
-- current user / me
-- password change if available
-- password reset if available
-
-Use actual backend endpoint paths.
-
-If an endpoint does not exist, do not create fake frontend API for it yet.
-
-2. Create shared form foundation.
-
-Create reusable form components under:
-
-src/components/forms/
-
-Create small components:
-- form-field-wrapper.tsx
-- text-input-field.tsx
-- password-input-field.tsx
-- textarea-field.tsx
-- select-field.tsx if shadcn select exists
-- form-error-alert.tsx
-- submit-button.tsx
-
-Rules:
-- Each file must stay under 150 lines.
-- Use react-hook-form.
-- Use zod schemas.
-- Use shadcn/ui components.
-- Keep input height consistent.
-- Keep labels consistent.
-- Keep error messages consistent.
-- Required fields should look consistent.
-- Disabled/loading states should be clear.
-- Password field should support show/hide password with Eye/EyeOff icons.
-- Icons must be relevant and not excessive.
-- Do not make forms overdesigned.
-- Do not add heavy animations.
-- Use Motion only for subtle entry/fade if already pattern exists.
-
-Form design rules:
-- Labels above inputs.
-- Helper/error text below input.
-- Error border uses danger color.
-- Focus ring uses primary teal.
-- Buttons use primary teal.
-- Destructive actions use danger red.
-- Form spacing must be consistent.
-- Use max-width for auth form.
-- Do not stretch login form too wide.
-
-3. Create auth types.
-
-Create:
-
-src/features/auth/types/auth.types.ts
-
-Include only what is needed now:
-- LoginRequest
-- LoginResponse
-- AuthUser
-- AuthPermission
-- CurrentUserResponse
-- LogoutResponse if needed
-
-AuthUser should support:
-- id
-- email
-- first_name
-- last_name
-- full_name optional
-- is_active
-- is_staff optional
-- permissions optional string[]
-- memberships optional if backend returns them
-
-Match backend response shape as closely as possible.
-If backend uses snake_case, keep response types snake_case.
-Do not randomly convert all fields yet unless there is a mapper.
-
-4. Create auth schemas.
-
-Create:
-
-src/features/auth/schemas/auth.schemas.ts
-
-Use Zod.
-
-Login schema:
-- email required and valid email
-- password required
-- password minimum based on backend if known, otherwise minimum 1 for login only
-
-Do not overvalidate login password on frontend.
-Login accepts existing password, so do not force complex password rules on login.
-
-Export:
-- loginSchema
-- LoginFormValues
-
-5. Create class-based auth API service.
-
-Create:
-
-src/features/auth/api/auth-api.service.ts
-
-Use existing axios api client from:
-src/lib/api/api-client.ts
-
-Implement class:
-
-class AuthApiService {
-  login(payload: LoginRequest): Promise<LoginResponse>
-  logout(): Promise<LogoutResponse>
-  getCurrentUser(): Promise<CurrentUserResponse>
-  refreshSession? only if backend endpoint exists
-}
-
-Export:
-export const authApiService = new AuthApiService()
-
-Rules:
-- No React hooks in API service.
-- No UI toast here.
-- No routing here.
-- No localStorage.
-- No token storage.
-- Only HTTP calls and response return.
-- Keep file under 150 lines.
-
-6. Create auth query hooks.
-
-Create:
-
-src/features/auth/hooks/use-auth-queries.ts
-
-Implement:
-- useCurrentUserQuery
-
-Rules:
-- Use TanStack Query.
-- Use query keys from query-keys.ts.
-- Current user query should be retry false or limited.
-- Should not spam backend.
-- Should be easy to use in AuthGuard and topbar later.
-
-7. Create auth mutation hooks.
-
-Create:
-
-src/features/auth/hooks/use-auth-mutations.ts
-
-Implement:
-- useLoginMutation
-- useLogoutMutation
-
-Rules:
-- Use TanStack Query useMutation.
-- On successful login:
-  - invalidate/refetch current user query
-  - do not store token
-- On logout:
-  - clear current user query cache
-  - redirect handling can be done by component or passed callback
-- Normalize errors using existing API error utilities.
-- Do not put UI layout inside hooks.
-- Keep file under 150 lines.
-
-8. Create AuthGuard.
-
-Create:
-
-src/features/auth/components/auth-guard.tsx
-
-Purpose:
-- Protect dashboard/app shell pages.
-- Use useCurrentUserQuery.
-- Show clean loading state while checking session.
-- If unauthenticated, redirect to login.
-- If authenticated, render children.
-
-Rules:
-- No token checks from localStorage.
-- Do not rely only on Zustand for auth.
-- Current user from backend is source of truth.
-- Keep component small.
-
-9. Create login form.
-
-Create:
-
-src/features/auth/components/login-form.tsx
-
-Use:
-- react-hook-form
-- zod resolver
-- loginSchema
-- useLoginMutation
-- shared form components
-- sonner toast if already configured
-
-UI requirements:
-- Clean hospital login form.
-- Title: Welcome back
-- Subtitle: Sign in to manage hospital patient flow.
-- Email input
-- Password input
-- Submit button
-- Error alert
-- Loading state
-- No unnecessary illustrations yet.
-- No heavy animation.
-- No fake social login.
-- No remember-me unless backend supports it.
-
-On success:
-- redirect to dashboard/home route.
-
-10. Create auth card.
-
-Create:
-
-src/features/auth/components/auth-card.tsx
-
-Reusable wrapper for auth forms:
-- logo/app name area
-- card layout
-- clean spacing
-- hospital-friendly look
-- max width
-- uses Trust Teal + Navy
-
-11. Create login page.
-
-Create route based on current Next.js app structure.
-
-Preferred:
-src/app/(auth)/login/page.tsx
-
-If route groups are not currently used, adapt cleanly.
-
-Login page:
-- centered layout
-- app name
-- AuthCard
-- LoginForm
-- background using app background/soft cyan subtly
-- no heavy design
-
-12. Protect app shell layout if appropriate.
-
-If dashboard layout exists:
-- wrap protected dashboard area with AuthGuard
-
-Preferred later structure:
-src/app/(dashboard)/layout.tsx
-
-But do not break current routes.
-If restructuring routes is risky, keep current app page working and add AuthGuard where appropriate.
-
-13. Update navigation/topbar only if needed.
-
-Do not fully implement user menu yet.
-But prepare topbar to accept user display name later.
-
-14. Update environment example only if missing.
-
-Ensure .env.example has:
-NEXT_PUBLIC_API_BASE_URL=http://localhost:8000/api/v1
-
-15. File-size discipline.
-
-Before finishing:
-- Check all new/changed files.
-- If any file is above 150 lines, split it.
-- Login form should not become huge.
-- API service should stay small.
-- Hooks should stay separate.
-
-16. Run checks.
-
-Use current package manager.
+- appointments-api.service.ts
+- use-appointment-queries.ts
+- use-appointment-mutations.ts
+- appointment.schemas.ts
+- appointment.types.ts
+
+API service:
+Create class-based service:
+
+AppointmentApiService
+
+Include only real backend endpoints from Swagger, such as:
+- list appointments
+- get appointment detail
+- create appointment
+- update appointment if available
+- cancel appointment
+- reschedule appointment
+- assign practitioner if available
+- get appointment status history
+- list available slots / appointment slots if available
+
+Do not put React hooks inside service.
+Do not put toasts inside service.
+Do not put UI logic inside service.
+
+Hooks:
+Create query hooks:
+- useAppointmentsQuery
+- useAppointmentDetailQuery
+- useAppointmentStatusHistoryQuery
+- useAvailableAppointmentSlotsQuery
+- any needed lookup query for facility/specialty/practitioner/patient search
+
+Create mutation hooks:
+- useCreateAppointmentMutation
+- useCancelAppointmentMutation
+- useRescheduleAppointmentMutation
+- useUpdateAppointmentMutation only if backend supports it
+- useAssignPractitionerMutation only if backend supports it
+
+Mutation behavior:
+- show success toast using Sonner
+- show friendly error messages
+- invalidate related queries
+- keep UI responsive
+- do not reload the whole page
+
+Forms:
+Use existing reusable form components.
+Use react-hook-form + zod.
+Create clean schemas for:
+- create appointment
+- cancel appointment
+- reschedule appointment
+
+Booking form UX:
+- Patient search/select
+- Facility select
+- Specialty select
+- Practitioner select optional if backend supports optional practitioner
+- Date/time or slot selection
+- Reason for visit optional if backend supports it
+- Show available slots after facility/specialty/date selection
+- Disable submit until required fields are valid
+- Show inline validation errors
+- Show backend errors clearly
+
+Important UX:
+- Fast loading
+- Skeleton loading states
+- Empty states
+- Error states with retry button
+- Toast feedback for actions
+- Confirmation dialog for cancel appointment
+- Confirmation dialog for reschedule
+- No silent failures
+- No confusing technical errors shown to user
+
+Custom error messages:
+Map backend errors into friendly messages, for example:
+- appointment overlap → “This patient or practitioner already has an appointment at this time.”
+- slot full → “This appointment slot is already full.”
+- invalid facility/specialty → “Selected service is not available at this facility.”
+- permission denied → “You do not have permission to perform this action.”
+- network error → “Could not connect to the server. Please try again.”
+- unknown error → “Something went wrong. Please try again.”
+
+Pages/routes:
+Create appointment routes based on current app structure:
+
+/appointments
+/appointments/new
+/appointments/[id]
+/appointments/[id]/reschedule
+
+If route structure already differs, follow existing pattern cleanly.
+
+Appointments list page:
+- PageHeader
+- filters
+- appointment table for desktop
+- appointment cards for mobile
+- actions:
+  - view
+  - reschedule
+  - cancel
+- filters:
+  - date range
+  - status
+  - facility
+  - specialty
+  - practitioner
+  - patient search
+- use pagination if backend supports it
+- use debounced search for patient/name/appointment number
+- do not fetch on every keystroke without debounce
+
+Appointment table:
+Use shadcn table or existing table components.
+Columns:
+- appointment number
+- patient
+- facility
+- specialty
+- practitioner
+- scheduled time
+- status
+- actions
+
+Appointment detail page:
+Show:
+- appointment summary
+- patient safe summary
+- facility/specialty/practitioner
+- scheduled start/end
+- current status
+- status history
+- action buttons based on status:
+  - reschedule
+  - cancel
+Do not show encrypted/sensitive fields.
+
+Create appointment page:
+- clean form
+- step-like sections if useful:
+  1. Patient
+  2. Service
+  3. Schedule
+  4. Confirm
+- Keep it simple, not overdesigned.
+- Show slot picker clearly.
+- Show loading state when fetching available slots.
+- If no slots, show empty state with helpful text.
+
+Reschedule page/dialog:
+- show current appointment time
+- choose new slot/time
+- require reason if backend requires it
+- confirm before submit
+- after success, navigate back to detail page or appointment list
+
+Cancel flow:
+- use confirmation dialog
+- require cancellation reason if backend requires it
+- show destructive button style
+- after success, update list/detail state
+
+Responsive/mobile-friendly requirement:
+All appointment pages must work well on mobile.
+
+Create reusable responsive components for all future pages:
+- responsive-page-shell.tsx
+- responsive-filter-panel.tsx or filters-sheet.tsx
+- mobile-record-card.tsx
+- responsive-action-bar.tsx
+
+Use these in appointments first, but design them generic enough for future modules.
+
+Mobile behavior:
+- table becomes card list
+- filters move into sheet/drawer
+- main actions remain reachable
+- form fields stack vertically
+- action buttons are easy to tap
+- no horizontal scroll
+- no cramped text
+
+Icons:
+Use relevant lucide icons only:
+- CalendarClock
+- UserSearch
+- Hospital
+- Stethoscope
+- Clock
+- RefreshCw
+- XCircle
+- CheckCircle
+- AlertTriangle
+- Search
+- Filter
+
+Permissions:
+Use backend-style permission names:
+- scheduling_appointment.view
+- scheduling_appointment.create
+- scheduling_appointment.update
+- scheduling_appointment.cancel
+- scheduling_appointment.reschedule
+- scheduling_appointment.assign
+
+If permission filtering is already implemented, apply it.
+If not fully implemented, prepare structure and do not overbuild.
+
+Design:
+- Trust Teal + Navy
+- shadcn/ui
+- clean healthcare enterprise UI
+- no overdesign
+- no heavy gradients
+- no random colors
+- no fake patient photos
+- no childish illustrations
+- consistent spacing
+- consistent form inputs
+- consistent status badges
+
+Status badges:
+Use existing StatusBadge.
+Support appointment statuses:
+- pending
+- confirmed
+- checked_in
+- queued
+- in_service
+- completed
+- cancelled
+- no_show
+- rescheduled
+
+Performance:
+- Use TanStack Query caching.
+- Debounce search.
+- Do not overfetch.
+- Use enabled queries for dependent dropdowns.
+- Use staleTime where reasonable.
+- Use optimistic UI only if safe.
+- Avoid unnecessary re-renders.
+- Use useMemo/useCallback only where useful.
 
 Run:
 npm run lint
 npm run build
 
-or pnpm/yarn/bun equivalent.
+Use current package manager if not npm.
 
-Stop after PART 1D only and show:
-- auth endpoints used
+Return:
+- real appointment endpoints used
 - files created/changed
-- shared form components created
-- API service created
+- pages created
+- reusable responsive components created
 - query hooks created
 - mutation hooks created
-- login page created
+- forms created
+- error handling implemented
+- mobile behavior implemented
+- command resultsBuild Objective 1 frontend: Online Appointment Scheduling Module for staff side.
+
+This is staff web dashboard, not patient mobile app yet.
+
+Before coding:
+- Read backend Swagger/OpenAPI carefully.
+- Use the real backend endpoints.
+- Do not guess API paths.
+- Do not use fake data when API exists.
+- If an endpoint is missing or response shape is unclear, report it instead of inventing.
+
+Goal:
+Create clean, fast, responsive, interactive appointment scheduling UI for hospital staff.
+
+Scope:
+- appointment list
+- appointment detail
+- create appointment
+- reschedule appointment
+- cancel appointment
+- appointment status history
+- available slot selection
+- patient search/select inside booking form
+- facility/specialty/practitioner/slot selection using backend APIs
+
+Do not build:
+- full patient module
+- full doctor schedule module
+- queue module
+- check-in module
+- patient mobile app
+
+Use the existing frontend architecture:
+features/appointments/
+  api/
+  hooks/
+  schemas/
+  types/
+  components/
+
+Use professional naming:
+- appointments-api.service.ts
+- use-appointment-queries.ts
+- use-appointment-mutations.ts
+- appointment.schemas.ts
+- appointment.types.ts
+
+API service:
+Create class-based service:
+
+AppointmentApiService
+
+Include only real backend endpoints from Swagger, such as:
+- list appointments
+- get appointment detail
+- create appointment
+- update appointment if available
+- cancel appointment
+- reschedule appointment
+- assign practitioner if available
+- get appointment status history
+- list available slots / appointment slots if available
+
+Do not put React hooks inside service.
+Do not put toasts inside service.
+Do not put UI logic inside service.
+
+Hooks:
+Create query hooks:
+- useAppointmentsQuery
+- useAppointmentDetailQuery
+- useAppointmentStatusHistoryQuery
+- useAvailableAppointmentSlotsQuery
+- any needed lookup query for facility/specialty/practitioner/patient search
+
+Create mutation hooks:
+- useCreateAppointmentMutation
+- useCancelAppointmentMutation
+- useRescheduleAppointmentMutation
+- useUpdateAppointmentMutation only if backend supports it
+- useAssignPractitionerMutation only if backend supports it
+
+Mutation behavior:
+- show success toast using Sonner
+- show friendly error messages
+- invalidate related queries
+- keep UI responsive
+- do not reload the whole page
+
+Forms:
+Use existing reusable form components.
+Use react-hook-form + zod.
+Create clean schemas for:
+- create appointment
+- cancel appointment
+- reschedule appointment
+
+Booking form UX:
+- Patient search/select
+- Facility select
+- Specialty select
+- Practitioner select optional if backend supports optional practitioner
+- Date/time or slot selection
+- Reason for visit optional if backend supports it
+- Show available slots after facility/specialty/date selection
+- Disable submit until required fields are valid
+- Show inline validation errors
+- Show backend errors clearly
+
+Important UX:
+- Fast loading
+- Skeleton loading states
+- Empty states
+- Error states with retry button
+- Toast feedback for actions
+- Confirmation dialog for cancel appointment
+- Confirmation dialog for reschedule
+- No silent failures
+- No confusing technical errors shown to user
+
+Custom error messages:
+Map backend errors into friendly messages, for example:
+- appointment overlap → “This patient or practitioner already has an appointment at this time.”
+- slot full → “This appointment slot is already full.”
+- invalid facility/specialty → “Selected service is not available at this facility.”
+- permission denied → “You do not have permission to perform this action.”
+- network error → “Could not connect to the server. Please try again.”
+- unknown error → “Something went wrong. Please try again.”
+
+Pages/routes:
+Create appointment routes based on current app structure:
+
+/appointments
+/appointments/new
+/appointments/[id]
+/appointments/[id]/reschedule
+
+If route structure already differs, follow existing pattern cleanly.
+
+Appointments list page:
+- PageHeader
+- filters
+- appointment table for desktop
+- appointment cards for mobile
+- actions:
+  - view
+  - reschedule
+  - cancel
+- filters:
+  - date range
+  - status
+  - facility
+  - specialty
+  - practitioner
+  - patient search
+- use pagination if backend supports it
+- use debounced search for patient/name/appointment number
+- do not fetch on every keystroke without debounce
+
+Appointment table:
+Use shadcn table or existing table components.
+Columns:
+- appointment number
+- patient
+- facility
+- specialty
+- practitioner
+- scheduled time
+- status
+- actions
+
+Appointment detail page:
+Show:
+- appointment summary
+- patient safe summary
+- facility/specialty/practitioner
+- scheduled start/end
+- current status
+- status history
+- action buttons based on status:
+  - reschedule
+  - cancel
+Do not show encrypted/sensitive fields.
+
+Create appointment page:
+- clean form
+- step-like sections if useful:
+  1. Patient
+  2. Service
+  3. Schedule
+  4. Confirm
+- Keep it simple, not overdesigned.
+- Show slot picker clearly.
+- Show loading state when fetching available slots.
+- If no slots, show empty state with helpful text.
+
+Reschedule page/dialog:
+- show current appointment time
+- choose new slot/time
+- require reason if backend requires it
+- confirm before submit
+- after success, navigate back to detail page or appointment list
+
+Cancel flow:
+- use confirmation dialog
+- require cancellation reason if backend requires it
+- show destructive button style
+- after success, update list/detail state
+
+Responsive/mobile-friendly requirement:
+All appointment pages must work well on mobile.
+
+Create reusable responsive components for all future pages:
+- responsive-page-shell.tsx
+- responsive-filter-panel.tsx or filters-sheet.tsx
+- mobile-record-card.tsx
+- responsive-action-bar.tsx
+
+Use these in appointments first, but design them generic enough for future modules.
+
+Mobile behavior:
+- table becomes card list
+- filters move into sheet/drawer
+- main actions remain reachable
+- form fields stack vertically
+- action buttons are easy to tap
+- no horizontal scroll
+- no cramped text
+
+Icons:
+Use relevant lucide icons only:
+- CalendarClock
+- UserSearch
+- Hospital
+- Stethoscope
+- Clock
+- RefreshCw
+- XCircle
+- CheckCircle
+- AlertTriangle
+- Search
+- Filter
+
+Permissions:
+Use backend-style permission names:
+- scheduling_appointment.view
+- scheduling_appointment.create
+- scheduling_appointment.update
+- scheduling_appointment.cancel
+- scheduling_appointment.reschedule
+- scheduling_appointment.assign
+
+If permission filtering is already implemented, apply it.
+If not fully implemented, prepare structure and do not overbuild.
+
+Design:
+- Trust Teal + Navy
+- shadcn/ui
+- clean healthcare enterprise UI
+- no overdesign
+- no heavy gradients
+- no random colors
+- no fake patient photos
+- no childish illustrations
+- consistent spacing
+- consistent form inputs
+- consistent status badges
+
+Status badges:
+Use existing StatusBadge.
+Support appointment statuses:
+- pending
+- confirmed
+- checked_in
+- queued
+- in_service
+- completed
+- cancelled
+- no_show
+- rescheduled
+
+Performance:
+- Use TanStack Query caching.
+- Debounce search.
+- Do not overfetch.
+- Use enabled queries for dependent dropdowns.
+- Use staleTime where reasonable.
+- Use optimistic UI only if safe.
+- Avoid unnecessary re-renders.
+- Use useMemo/useCallback only where useful.
+
+Run:
+npm run lint
+npm run build
+
+Use current package manager if not npm.
+
+Return:
+- real appointment endpoints used
+- files created/changed
+- pages created
+- reusable responsive components created
+- query hooks created
+- mutation hooks created
+- forms created
+- error handling implemented
+- mobile behavior implemented
 - command results
-- any file close to or above 150 lines

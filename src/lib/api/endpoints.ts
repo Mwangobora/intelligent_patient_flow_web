@@ -15,6 +15,16 @@ export const apiEndpoints = {
   queueing: { base: "/queueing" },
   intelligence: { base: "/intelligence" },
   notifications: { base: "/notifications" },
-  reporting: { base: "/reporting" },
+  reporting: {
+    base: "/reporting",
+    dashboard: {
+      overview: "/reporting/dashboard/overview/",
+      appointments: "/reporting/dashboard/appointments/",
+      queues: "/reporting/dashboard/queues/",
+      checkins: "/reporting/dashboard/checkins/",
+      practitioners: "/reporting/dashboard/practitioners/",
+      intelligence: "/reporting/dashboard/intelligence/",
+    },
+  },
   audit: { base: "/audit" },
 } as const;

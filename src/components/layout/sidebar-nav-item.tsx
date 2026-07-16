@@ -25,7 +25,8 @@ export function SidebarNavItem({
       className={cn(
         "flex h-11 items-center rounded-lg px-3 text-sm font-medium transition-colors",
         "text-primary-foreground/72 hover:bg-secondary hover:text-foreground",
-        active && "bg-secondary text-primary shadow-sm ring-1 ring-primary/15",
+        active &&
+          "!bg-secondary !text-foreground shadow-sm ring-1 ring-primary/15 [&_svg]:!text-foreground",
         collapsed ? "justify-center" : "gap-3",
       )}
       title={collapsed ? item.label : undefined}

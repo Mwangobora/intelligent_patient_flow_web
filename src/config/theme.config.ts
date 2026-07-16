@@ -31,3 +31,13 @@ export const dashboardColorPreview = [
   { name: "Danger", token: "bg-danger", value: brandColors.danger },
   { name: "Info", token: "bg-info", value: brandColors.info },
 ] as const;
+
+export const dashboardChartColors = {
+  teal: brandColors.primaryTeal,
+  navy: brandColors.darkNavy,
+  cyan: brandColors.info,
+  success: brandColors.success,
+  warning: brandColors.warning,
+  danger: brandColors.danger,
+  soft: brandColors.softCyan,
+} as const;

@@ -46,17 +46,26 @@ export function AppointmentStatusHistory({
       {history.map((item) => (
         <div key={item.id} className="rounded-lg border border-border px-4 py-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <AppointmentStatusBadge status={item.to_status} />
+            <div className="flex flex-wrap items-center gap-2">
+              {item.from_status ? <AppointmentStatusBadge status={item.from_status} /> : null}
+              {item.from_status ? <span className="text-sm text-muted-foreground">to</span> : null}
+              <AppointmentStatusBadge status={item.to_status} />
+            </div>
             <span className="text-sm text-muted-foreground">
               {formatAppointmentDateTime(item.changed_at)}
             </span>
           </div>
-          <p className="mt-2 text-sm text-foreground">
-            {item.reason || "Status updated from the operations workspace."}
-          </p>
-          {item.changed_by_email ? (
-            <p className="mt-1 text-xs text-muted-foreground">{item.changed_by_email}</p>
-          ) : null}
+          <div className="mt-2 space-y-1 text-sm">
+            <p className="text-foreground">
+              {item.reason || "Status updated from the operations workspace."}
+            </p>
+            <p className="text-muted-foreground">
+              Source: {item.change_source.replaceAll("_", " ")}
+            </p>
+            {item.changed_by_email ? (
+              <p className="text-muted-foreground">{item.changed_by_email}</p>
+            ) : null}
+          </div>
         </div>
       ))}
     </div>

@@ -23,6 +23,7 @@ import { useCurrentUserQuery } from "@/features/auth/hooks/use-auth-queries";
 import { useCancelAppointmentMutation } from "../hooks/use-appointment-mutations";
 import { useAppointmentPatientsSummaryQuery, useAppointmentsQuery, useFacilitiesLookupQuery, useFacilitySpecialtiesQuery, usePractitionersLookupQuery } from "../hooks/use-appointment-queries";
 import { useDebouncedValue } from "../hooks/use-debounced-value";
+import { AppointmentCancelDialog } from "./appointment-cancel-dialog";
 import { AppointmentMobileCard } from "./appointment-mobile-card";
 import { AppointmentsTable } from "./appointments-table";
 import type { AppointmentRecord, AppointmentStatus } from "../types/appointment.types";
@@ -50,6 +51,7 @@ export function AppointmentsListScreen() {
   const activeMembership = currentUser?.memberships?.find((item) => item.is_active) ?? currentUser?.memberships?.[0];
   const [searchText, setSearchText] = useState("");
   const [patientSearch, setPatientSearch] = useState("");
+  const [cancelTarget, setCancelTarget] = useState<AppointmentRecord | null>(null);
   const debouncedSearch = useDebouncedValue(searchText);
   const debouncedPatientSearch = useDebouncedValue(patientSearch);
   const [filters, setFilters] = useState({
@@ -126,10 +128,7 @@ export function AppointmentsListScreen() {
   }
 
   const handleCancel = async (appointment: AppointmentRecord) => {
-    const reason = window.prompt("Enter a cancellation reason for this appointment.");
-    if (!reason) return;
-    if (!window.confirm(`Cancel appointment ${appointment.appointment_number}?`)) return;
-    await cancelMutation.mutateAsync({ cancellation_reason: reason });
+    setCancelTarget(appointment);
   };
 
   return (
@@ -165,6 +164,20 @@ export function AppointmentsListScreen() {
           </ResponsiveFilterPanel>
         }
       >
+        <AppointmentCancelDialog
+          open={Boolean(cancelTarget)}
+          appointmentNumber={cancelTarget?.appointment_number}
+          isSubmitting={cancelMutation.isPending}
+          onClose={() => setCancelTarget(null)}
+          onConfirm={async (reason) => {
+            if (!cancelTarget) return;
+            await cancelMutation.mutateAsync({
+              appointmentId: cancelTarget.id,
+              cancellation_reason: reason,
+            });
+            setCancelTarget(null);
+          }}
+        />
         {!hasScope ? (
           <ScopeNotice
             title="No scheduling scope linked yet"

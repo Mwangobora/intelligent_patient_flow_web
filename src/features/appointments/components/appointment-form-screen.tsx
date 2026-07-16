@@ -42,8 +42,8 @@ export function AppointmentFormScreen({
         title={mode === "create" ? "Create Appointment" : "Reschedule Appointment"}
         description={
           mode === "create"
-            ? "Search for a patient, choose a service, and select an available slot."
-            : "Choose a new slot for the selected appointment."
+            ? "Search for a patient, choose a facility and service, then book a real available slot."
+            : "Choose a new slot for the selected appointment while preserving status history."
         }
       />
       <ResponsiveActionBar>
@@ -57,10 +57,15 @@ export function AppointmentFormScreen({
       ) : null}
       {mode === "reschedule" && appointmentQuery.data ? (
         <SectionCard title="Current booking" description="The original time will be replaced after rescheduling succeeds.">
-          <p className="text-sm text-foreground">
-            Current schedule: {formatAppointmentDateTime(appointmentQuery.data.scheduled_start)} to{" "}
-            {formatAppointmentDateTime(appointmentQuery.data.scheduled_end)}
-          </p>
+          <div className="space-y-2 text-sm text-foreground">
+            <p>
+              Current schedule: {formatAppointmentDateTime(appointmentQuery.data.scheduled_start)} to{" "}
+              {formatAppointmentDateTime(appointmentQuery.data.scheduled_end)}
+            </p>
+            <p className="text-muted-foreground">
+              Rescheduling creates a new appointment record and keeps the original status history visible.
+            </p>
+          </div>
         </SectionCard>
       ) : null}
       {activeMembership?.organization ? (

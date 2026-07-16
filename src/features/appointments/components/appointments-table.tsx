@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 
+import { canCancelAppointment, canRescheduleAppointment } from "./appointment-action-rules";
 import { AppointmentStatusBadge } from "./appointment-status-badge";
 import { formatAppointmentDateTime } from "./appointment-formatters";
 import type { AppointmentRecord } from "../types/appointment.types";
@@ -43,8 +44,14 @@ export function AppointmentsTable({
                 <td className="px-4 py-4">
                   <div className="flex flex-wrap gap-2">
                     <Link href={`/appointments/${appointment.id}`}><Button variant="secondary">View</Button></Link>
-                    <Link href={`/appointments/${appointment.id}/reschedule`}><Button variant="secondary">Reschedule</Button></Link>
-                    <Button variant="danger" onClick={() => onCancel(appointment)}>Cancel</Button>
+                    {canRescheduleAppointment(appointment.status) ? (
+                      <Link href={`/appointments/${appointment.id}/reschedule`}>
+                        <Button variant="secondary">Reschedule</Button>
+                      </Link>
+                    ) : null}
+                    {canCancelAppointment(appointment.status) ? (
+                      <Button variant="danger" onClick={() => onCancel(appointment)}>Cancel</Button>
+                    ) : null}
                   </div>
                 </td>
               </tr>

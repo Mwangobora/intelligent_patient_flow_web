@@ -8,6 +8,7 @@ import { useForm, useWatch } from "react-hook-form";
 import { FormErrorAlert } from "@/components/forms/form-error-alert";
 import { SelectField } from "@/components/forms/select-field";
 import { SubmitButton } from "@/components/forms/submit-button";
+import { TextInputField } from "@/components/forms/text-input-field";
 import { TextareaField } from "@/components/forms/textarea-field";
 import type { ApiError } from "@/lib/api/api-error";
 import type { SelectOption } from "@/types/common";
@@ -81,6 +82,11 @@ export function AppointmentForm({
   const appointmentDate = useWatch({ control: form.control, name: "appointment_date" }) as string | undefined;
   const practitionerId = useWatch({ control: form.control, name: "practitioner_id" }) as string | undefined;
   const patientId = useWatch({ control: form.control, name: "patient_id" as never }) as string | undefined;
+  const selectedSlotId = useWatch({ control: form.control, name: "appointment_slot_id" as never }) as string | undefined;
+  const hasPatient = mode === "reschedule" || Boolean(patientId);
+  const hasFacility = mode === "reschedule" || Boolean(facilityId);
+  const hasService = mode === "reschedule" || Boolean(facilitySpecialtyId);
+  const hasDate = Boolean(appointmentDate);
 
   const specialtiesQuery = useFacilitySpecialtiesQuery(
     { facility_id: mode === "create" ? facilityId : appointment?.facility, is_active: true },
@@ -105,6 +111,15 @@ export function AppointmentForm({
   useEffect(() => {
     form.setValue("appointment_slot_id", "" as never);
   }, [appointmentDate, facilitySpecialtyId, practitionerId, form]);
+
+  useEffect(() => {
+    if (mode !== "create") {
+      return;
+    }
+    form.setValue("facility_specialty_id", "" as never);
+    form.setValue("practitioner_id", "" as never);
+    form.setValue("appointment_slot_id", "" as never);
+  }, [facilityId, form, mode]);
 
   const facilityOptions = useMemo<SelectOption[]>(
     () => [
@@ -170,59 +185,123 @@ export function AppointmentForm({
     <form onSubmit={onSubmit} className="space-y-6">
       <FormErrorAlert message={formError} />
       {mode === "create" ? (
-        <PatientSearchSelect
-          organizationId={organizationId}
-          facilityId={facilityId}
-          value={patientId}
-          onChange={(patientId) => form.setValue("patient_id", patientId as never, { shouldValidate: true })}
-        />
+        <div className="rounded-xl border border-border bg-card p-5">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">Step 1</p>
+          <h3 className="mt-2 text-lg font-semibold text-foreground">Search and select patient</h3>
+          <p className="mt-1 text-sm text-muted-foreground">Start the staff-side booking flow by selecting the patient record first.</p>
+          <div className="mt-4">
+            <PatientSearchSelect
+              organizationId={organizationId}
+              facilityId={facilityId}
+              value={patientId}
+              onChange={(patientId) => form.setValue("patient_id", patientId as never, { shouldValidate: true })}
+            />
+          </div>
+        </div>
       ) : null}
-      {mode === "create" ? (
-        <SelectField
-          label="Facility"
-          options={facilityOptions}
-          helperText={
-            facilitiesQuery.isLoading
-              ? "Loading facilities..."
-              : facilityOptions.length > 1
-                ? "Choose the facility for this booking."
-                : "No active facilities available for this organization."
-          }
-          error={fieldErrors.facility_id?.message}
-          {...form.register("facility_id" as never)}
-        />
-      ) : null}
-      <SelectField
-        label="Service"
-        options={specialtyOptions}
-        disabled={mode === "create" ? !facilityId : !appointment?.facility}
-        helperText={
-          mode === "create" && !facilityId
-            ? "Select a facility first."
-            : specialtiesQuery.isLoading
-              ? "Loading services..."
-              : specialtyOptions.length > 1
-                ? "Choose the service or specialty for this appointment."
-                : "No active services available for the selected facility."
-        }
-        error={fieldErrors.facility_specialty_id?.message}
-        {...form.register("facility_specialty_id" as never)}
-      />
-      <PractitionerSearchSelect
-        organizationId={organizationId}
-        facilityId={mode === "create" ? facilityId : appointment?.facility}
-        value={practitionerId}
-        onChange={(id) => form.setValue("practitioner_id", id as never)}
-      />
-      <SelectField label="Booking channel" options={bookingChannelOptions} error={fieldErrors.booking_channel?.message} {...form.register("booking_channel")} />
-      <input type="date" className="flex h-11 w-full rounded-md border border-input bg-card px-3 text-sm text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring" {...form.register("appointment_date")} />
-      <SlotPicker
-        slots={slotsQuery.data ?? []}
-        selectedSlotId={useWatch({ control: form.control, name: "appointment_slot_id" as never }) as string | undefined}
-        isLoading={slotsQuery.isLoading}
-        onSelect={(slot) => form.setValue("appointment_slot_id", slot.id as never, { shouldValidate: true })}
-      />
-      <TextareaField label="Reason for visit" placeholder="Optional notes for the service team" error={fieldErrors.reason_for_visit?.message} {...form.register("reason_for_visit")} />
+
+      <div className="rounded-xl border border-border bg-card p-5">
+        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+          {mode === "create" ? "Step 2" : "Step 1"}
+        </p>
+        <h3 className="mt-2 text-lg font-semibold text-foreground">Choose facility and specialty</h3>
+        <p className="mt-1 text-sm text-muted-foreground">Select the hospital location and the service being booked.</p>
+        <div className="mt-4 grid gap-4 lg:grid-cols-2">
+          {mode === "create" ? (
+            <SelectField
+              label="Facility"
+              options={facilityOptions}
+              helperText={
+                !hasPatient
+                  ? "Select the patient first to continue the guided booking flow."
+                  : facilitiesQuery.isLoading
+                  ? "Loading facilities..."
+                  : facilityOptions.length > 1
+                    ? "Choose the facility for this booking."
+                    : "No active facilities available for this organization."
+              }
+              error={fieldErrors.facility_id?.message}
+              disabled={!hasPatient}
+              {...form.register("facility_id" as never)}
+            />
+          ) : null}
+          <SelectField
+            label="Service"
+            options={specialtyOptions}
+            disabled={mode === "create" ? !facilityId : !appointment?.facility}
+            helperText={
+              mode === "create" && !facilityId
+                ? "Select a facility first."
+                : specialtiesQuery.isLoading
+                  ? "Loading services..."
+                  : specialtyOptions.length > 1
+                    ? "Choose the service or specialty for this appointment."
+                    : "No active services available for the selected facility."
+            }
+            error={fieldErrors.facility_specialty_id?.message}
+            {...form.register("facility_specialty_id" as never)}
+          />
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-border bg-card p-5">
+        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+          {mode === "create" ? "Step 3" : "Step 2"}
+        </p>
+        <h3 className="mt-2 text-lg font-semibold text-foreground">Select date and available slot</h3>
+        <p className="mt-1 text-sm text-muted-foreground">Pick a date, optionally narrow to a practitioner, then choose a live backend slot.</p>
+        <div className="mt-4 grid gap-4 lg:grid-cols-2">
+          <PractitionerSearchSelect
+            organizationId={organizationId}
+            facilityId={mode === "create" ? facilityId : appointment?.facility}
+            value={practitionerId}
+            onChange={(id) => form.setValue("practitioner_id", id as never)}
+          />
+          <TextInputField
+            label="Appointment date"
+            type="date"
+            helperText={
+              !hasFacility
+                ? "Select the facility first."
+                : !hasService
+                  ? "Select the specialty first."
+                  : "Available slots load for the chosen day."
+            }
+            error={fieldErrors.appointment_date?.message}
+            {...form.register("appointment_date")}
+          />
+        </div>
+        <div className="mt-4">
+          {!hasFacility || !hasService || !hasDate ? (
+            <div className="rounded-xl border border-dashed border-border bg-secondary/30 px-4 py-6 text-sm text-muted-foreground">
+              {!hasFacility
+                ? "Select the facility to load available slots."
+                : !hasService
+                  ? "Select the specialty to load available slots."
+                  : "Choose an appointment date to load live available slots."}
+            </div>
+          ) : (
+            <SlotPicker
+              slots={slotsQuery.data ?? []}
+              selectedSlotId={selectedSlotId}
+              isLoading={slotsQuery.isLoading}
+              onSelect={(slot) => form.setValue("appointment_slot_id", slot.id as never, { shouldValidate: true })}
+            />
+          )}
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-border bg-card p-5">
+        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+          {mode === "create" ? "Step 4" : "Step 3"}
+        </p>
+        <h3 className="mt-2 text-lg font-semibold text-foreground">Confirm booking</h3>
+        <p className="mt-1 text-sm text-muted-foreground">Review the booking channel, add optional notes, and save the appointment.</p>
+        <div className="mt-4 space-y-4">
+          <SelectField label="Booking channel" options={bookingChannelOptions} error={fieldErrors.booking_channel?.message} {...form.register("booking_channel")} />
+          <TextareaField label="Reason for visit" placeholder="Optional notes for the service team" error={fieldErrors.reason_for_visit?.message} {...form.register("reason_for_visit")} />
+        </div>
+      </div>
       <SubmitButton label={mode === "create" ? "Book appointment" : "Reschedule appointment"} loadingLabel="Saving..." isLoading={mode === "create" ? createMutation.isPending : rescheduleMutation.isPending} />
     </form>
   );

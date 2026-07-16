@@ -15,6 +15,10 @@ import type {
   UpdateAppointmentPayload,
 } from "../types/appointment.types";
 
+type CancelAppointmentMutationPayload = CancelAppointmentPayload & {
+  appointmentId?: string;
+};
+
 function getAppointmentFriendlyError(error: unknown): string {
   const normalized = normalizeApiError(error);
   const message = normalized.message.toLowerCase();
@@ -25,6 +29,9 @@ function getAppointmentFriendlyError(error: unknown): string {
   if (message.includes("overlapping")) {
     return "This patient or practitioner already has an appointment at this time.";
   }
+  if (message.includes("practitioner") && message.includes("appointment")) {
+    return "This doctor is already booked for the selected time.";
+  }
   if (message.includes("slot is full")) {
     return "This appointment slot is already full.";
   }
@@ -33,6 +40,12 @@ function getAppointmentFriendlyError(error: unknown): string {
   }
   if (message.includes("specialty must belong") || message.includes("selected facility specialty")) {
     return "Selected service is not available at this facility.";
+  }
+  if (message.includes("cannot be cancelled") || message.includes("cancellation cutoff")) {
+    return "This appointment cannot be cancelled right now.";
+  }
+  if (message.includes("cannot be rescheduled") || message.includes("reschedule cutoff")) {
+    return "This appointment cannot be rescheduled right now.";
   }
   if (message.includes("network") || normalized.status === null) {
     return "Could not connect to the server. Please try again.";
@@ -83,11 +96,14 @@ export function useCancelAppointmentMutation(appointmentId?: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (payload: CancelAppointmentPayload) =>
-      appointmentsApiService.cancelAppointment(appointmentId!, payload),
-    onSuccess: () => {
+    mutationFn: (payload: CancelAppointmentMutationPayload) =>
+      appointmentsApiService.cancelAppointment(
+        appointmentId ?? payload.appointmentId!,
+        payload,
+      ),
+    onSuccess: (appointment) => {
       toast.success("Appointment cancelled successfully.");
-      invalidateAppointmentQueries(queryClient, appointmentId);
+      invalidateAppointmentQueries(queryClient, appointmentId ?? appointment.id);
     },
     onError: (error) => {
       toast.error(getAppointmentFriendlyError(error));
@@ -105,6 +121,11 @@ export function useRescheduleAppointmentMutation(appointmentId?: string) {
       toast.success("Appointment rescheduled successfully.");
       invalidateAppointmentQueries(queryClient, appointmentId);
       invalidateAppointmentQueries(queryClient, appointment.id);
+      if (appointmentId) {
+        void queryClient.invalidateQueries({
+          queryKey: [...queryKeys.appointments.all, "status-history", appointmentId],
+        });
+      }
     },
     onError: (error) => {
       toast.error(getAppointmentFriendlyError(error));

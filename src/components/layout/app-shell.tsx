@@ -22,11 +22,11 @@ export function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
 
   return (
-    <div className="min-h-screen bg-background md:flex">
+    <div className="h-screen overflow-hidden bg-background md:flex">
       <Sidebar pathname={pathname} />
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <Topbar pageTitle={getPageTitle(pathname)} />
-        <main className="flex-1">{children}</main>
+        <main className="flex-1 overflow-y-auto">{children}</main>
       </div>
     </div>
   );

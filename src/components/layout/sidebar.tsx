@@ -19,7 +19,7 @@ export function Sidebar({ pathname }: SidebarProps) {
     <motion.aside
       animate={{ width: sidebarCollapsed ? 88 : 264 }}
       transition={{ duration: 0.2, ease: "easeInOut" }}
-      className="hidden min-h-screen shrink-0 border-r border-white/10 bg-foreground px-3 py-4 text-primary-foreground md:flex md:flex-col"
+      className="sticky top-0 hidden h-screen shrink-0 overflow-y-auto border-r border-white/10 bg-foreground px-3 py-4 text-primary-foreground md:flex md:flex-col"
     >
       <div className="flex items-center justify-between gap-3 px-2 pb-4">
         {!sidebarCollapsed ? (

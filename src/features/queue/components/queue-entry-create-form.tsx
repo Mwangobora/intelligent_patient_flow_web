@@ -86,6 +86,11 @@ export function QueueEntryCreateForm({
           ]}
           value={formValues.patient_checkin_id}
           error={fieldErrors.patient_checkin_id?.[0]}
+          helperText={
+            checkins.length
+              ? "Only active, non-voided check-ins are listed here."
+              : "No active check-ins are available for this queue right now."
+          }
           onChange={(event) => setFormValues((current) => ({ ...current, patient_checkin_id: event.target.value }))}
         />
         <SelectField

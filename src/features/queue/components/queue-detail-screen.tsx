@@ -59,7 +59,7 @@ export function QueueDetailScreen({ queueId }: QueueDetailScreenProps) {
   );
   const entries = useMemo(() => sortQueueEntries(entriesQuery.data ?? []), [entriesQuery.data]);
   const activeSelectedEntryId = selectedEntryId ?? entries[0]?.id ?? null;
-  const eventsQuery = useQueueEntryEventsQuery(selectedEntryId ?? undefined, {
+  const eventsQuery = useQueueEntryEventsQuery(activeSelectedEntryId ?? undefined, {
     enabled: Boolean(activeSelectedEntryId) && workspace.canViewQueues,
   });
   const openMutation = useOpenQueueMutation();

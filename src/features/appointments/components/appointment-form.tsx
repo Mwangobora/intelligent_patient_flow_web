@@ -107,20 +107,24 @@ export function AppointmentForm({
   }, [appointmentDate, facilitySpecialtyId, practitionerId, form]);
 
   const facilityOptions = useMemo<SelectOption[]>(
-    () =>
-      (facilitiesQuery.data ?? []).map((facility) => ({
+    () => [
+      { label: "Select facility", value: "" },
+      ...(facilitiesQuery.data ?? []).map((facility) => ({
         label: facility.name,
         value: facility.id,
       })),
+    ],
     [facilitiesQuery.data],
   );
 
   const specialtyOptions = useMemo<SelectOption[]>(
-    () =>
-      (specialtiesQuery.data ?? []).map((specialty) => ({
+    () => [
+      { label: "Select service", value: "" },
+      ...(specialtiesQuery.data ?? []).map((specialty) => ({
         label: specialty.specialty_name,
         value: specialty.id,
       })),
+    ],
     [specialtiesQuery.data],
   );
   const fieldErrors = form.formState.errors as Partial<Record<string, { message?: string }>>;
@@ -177,6 +181,13 @@ export function AppointmentForm({
         <SelectField
           label="Facility"
           options={facilityOptions}
+          helperText={
+            facilitiesQuery.isLoading
+              ? "Loading facilities..."
+              : facilityOptions.length > 1
+                ? "Choose the facility for this booking."
+                : "No active facilities available for this organization."
+          }
           error={fieldErrors.facility_id?.message}
           {...form.register("facility_id" as never)}
         />
@@ -184,6 +195,16 @@ export function AppointmentForm({
       <SelectField
         label="Service"
         options={specialtyOptions}
+        disabled={mode === "create" ? !facilityId : !appointment?.facility}
+        helperText={
+          mode === "create" && !facilityId
+            ? "Select a facility first."
+            : specialtiesQuery.isLoading
+              ? "Loading services..."
+              : specialtyOptions.length > 1
+                ? "Choose the service or specialty for this appointment."
+                : "No active services available for the selected facility."
+        }
         error={fieldErrors.facility_specialty_id?.message}
         {...form.register("facility_specialty_id" as never)}
       />

@@ -1,5 +1,5 @@
-import { QueueListScreen } from "@/features/queue/components/queue-list-screen";
+import { QueueServiceDeskScreen } from "@/features/queue/components/queue-service-desk-screen";
 
 export default function QueuePage() {
-  return <QueueListScreen />;
+  return <QueueServiceDeskScreen />;
 }

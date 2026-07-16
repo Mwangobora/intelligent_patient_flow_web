@@ -67,6 +67,15 @@ export function QueueServiceActionsPanel({
     );
   }
 
+  const canShowCall = canCall && selectedEntry.status === "waiting";
+  const canShowRecall = canCall && selectedEntry.status === "skipped";
+  const canShowSkip = canSkip && selectedEntry.status === "called";
+  const canShowStart = canStart && selectedEntry.status === "called";
+  const canShowComplete = canComplete && selectedEntry.status === "in_service";
+  const canShowCancel = canCancel && ["waiting", "called", "skipped"].includes(selectedEntry.status);
+  const canShowTransfer = canTransfer && ["waiting", "called", "skipped"].includes(selectedEntry.status);
+  const canShowPriority = canChangePriority && ["waiting", "called", "skipped"].includes(selectedEntry.status);
+
   return (
     <SectionCard title="Service desk actions" description="Run the operational queue workflow from one panel.">
       <div className="space-y-5">
@@ -80,14 +89,14 @@ export function QueueServiceActionsPanel({
         </div>
 
         <div className="flex flex-wrap gap-2">
-          {canCall ? <Button onClick={() => void onCall()} disabled={isBusy || selectedEntry.status !== "waiting"}>Call</Button> : null}
-          {canCall ? <Button variant="secondary" onClick={() => void onRecall()} disabled={isBusy || selectedEntry.status !== "skipped"}>Recall</Button> : null}
-          {canSkip ? <Button variant="secondary" onClick={() => void onSkip(skipReason || undefined)} disabled={isBusy || selectedEntry.status !== "called"}>Skip</Button> : null}
-          {canStart ? <Button variant="secondary" onClick={() => void onStart()} disabled={isBusy || selectedEntry.status !== "called"}>Start service</Button> : null}
-          {canComplete ? <Button onClick={() => void onComplete()} disabled={isBusy || selectedEntry.status !== "in_service"}>Complete service</Button> : null}
+          {canShowCall ? <Button onClick={() => void onCall()} disabled={isBusy}>Call</Button> : null}
+          {canShowRecall ? <Button variant="secondary" onClick={() => void onRecall()} disabled={isBusy}>Recall</Button> : null}
+          {canShowSkip ? <Button variant="secondary" onClick={() => void onSkip(skipReason || undefined)} disabled={isBusy}>Skip</Button> : null}
+          {canShowStart ? <Button variant="secondary" onClick={() => void onStart()} disabled={isBusy}>Start service</Button> : null}
+          {canShowComplete ? <Button onClick={() => void onComplete()} disabled={isBusy}>Complete service</Button> : null}
         </div>
 
-        {canSkip ? (
+        {canShowSkip ? (
           <TextareaField
             label="Skip reason"
             rows={2}
@@ -97,7 +106,7 @@ export function QueueServiceActionsPanel({
           />
         ) : null}
 
-        {canChangePriority ? (
+        {canShowPriority ? (
           <div className="grid gap-4 rounded-xl border border-border p-4 lg:grid-cols-[180px_1fr_auto]">
             <SelectField
               label="Priority"
@@ -129,7 +138,7 @@ export function QueueServiceActionsPanel({
           </div>
         ) : null}
 
-        {canTransfer ? (
+        {canShowTransfer ? (
           <div className="grid gap-4 rounded-xl border border-border p-4 lg:grid-cols-[240px_1fr_auto]">
             <SelectField
               label="Destination queue"
@@ -162,7 +171,7 @@ export function QueueServiceActionsPanel({
           </div>
         ) : null}
 
-        {canCancel ? (
+        {canShowCancel ? (
           <div className="grid gap-4 rounded-xl border border-danger/20 p-4 lg:grid-cols-[1fr_auto]">
             <TextareaField
               label="Cancellation reason"

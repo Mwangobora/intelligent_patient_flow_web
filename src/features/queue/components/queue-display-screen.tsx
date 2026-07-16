@@ -12,9 +12,7 @@ import { SelectField } from "@/components/forms/select-field";
 
 import { useNextQueueEntryQuery, useQueueEntriesQuery, useQueuesQuery } from "../hooks/use-queue-queries";
 import { useQueueWorkspace } from "../hooks/use-queue-workspace";
-import { QueueEntryMobileCard } from "./queue-entry-mobile-card";
-import { QueueEntryTable } from "./queue-entry-table";
-import { NextQueueEntryPanel } from "./next-queue-entry-panel";
+import { QueueDisplayBoard } from "./queue-display-board";
 import { sortQueueEntries } from "./queue-formatters";
 
 const today = format(new Date(), "yyyy-MM-dd");
@@ -30,16 +28,24 @@ export function QueueDisplayScreen() {
     },
     { enabled: workspace.canViewQueues && hasFacilityScope },
   );
+  const resolvedQueueId = selectedQueueId || queuesQuery.data?.[0]?.id || "";
   const entriesQuery = useQueueEntriesQuery(
-    { queue_id: selectedQueueId || undefined, active_only: true },
-    { enabled: workspace.canViewQueues && Boolean(selectedQueueId) },
+    { queue_id: resolvedQueueId || undefined, active_only: true },
+    {
+      enabled: workspace.canViewQueues && Boolean(resolvedQueueId),
+      refetchInterval: resolvedQueueId ? 12000 : false,
+    },
   );
-  const nextEntryQuery = useNextQueueEntryQuery(selectedQueueId || undefined, {
-    enabled: workspace.canViewQueues && Boolean(selectedQueueId),
+  const nextEntryQuery = useNextQueueEntryQuery(resolvedQueueId || undefined, {
+    enabled: workspace.canViewQueues && Boolean(resolvedQueueId),
+    refetchInterval: resolvedQueueId ? 12000 : false,
   });
 
   const entries = sortQueueEntries(entriesQuery.data ?? []);
   const nextEntry = nextEntryQuery.error?.status === 404 ? null : nextEntryQuery.data ?? entries[0] ?? null;
+  const waitingEntries = entries.filter((entry) =>
+    ["waiting", "called", "skipped"].includes(entry.status),
+  );
 
   if (workspace.isLoading) {
     return <LoadingState title="Loading queue display" description="Preparing the live queue board." />;
@@ -64,7 +70,7 @@ export function QueueDisplayScreen() {
 
       <SelectField
         label="Queue"
-        value={selectedQueueId}
+        value={resolvedQueueId}
         onChange={(event) => setSelectedQueueId(event.target.value)}
         options={[
           { label: "Select queue", value: "" },
@@ -76,14 +82,7 @@ export function QueueDisplayScreen() {
         disabled={!hasFacilityScope}
       />
 
-      <NextQueueEntryPanel entry={nextEntry} title="Now calling" />
-
-      <QueueEntryTable entries={entries} emptyMessage="No active queue entries to display." />
-      <div className="space-y-4 md:hidden">
-        {entries.map((entry) => (
-          <QueueEntryMobileCard key={entry.id} entry={entry} />
-        ))}
-      </div>
+      <QueueDisplayBoard nowCalling={nextEntry} waitingEntries={waitingEntries} />
     </PageContainer>
   );
 }

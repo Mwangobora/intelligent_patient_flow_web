@@ -31,6 +31,7 @@ function buildScopeKey(params: Record<string, unknown>) {
 
 type QueryOptions = {
   enabled?: boolean;
+  refetchInterval?: number | false;
 };
 
 function useQueueQueryBase<TData>(
@@ -42,6 +43,7 @@ function useQueueQueryBase<TData>(
     queryKey,
     queryFn,
     enabled: options?.enabled,
+    refetchInterval: options?.refetchInterval,
     placeholderData: keepPreviousData,
   });
 }

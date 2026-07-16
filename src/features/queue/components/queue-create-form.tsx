@@ -80,6 +80,11 @@ export function QueueCreateForm({
           ]}
           value={formValues.service_point_id}
           error={fieldErrors.service_point_id?.[0]}
+          helperText={
+            servicePoints.length
+              ? "Choose the front desk, triage desk, or service point for this queue."
+              : "No active service points are available for this facility."
+          }
           onChange={(event) => setFormValues((current) => ({ ...current, service_point_id: event.target.value }))}
         />
         <SelectField
@@ -93,6 +98,11 @@ export function QueueCreateForm({
           ]}
           value={formValues.facility_specialty_id}
           error={fieldErrors.facility_specialty_id?.[0]}
+          helperText={
+            specialties.length
+              ? "Optional. Leave as General queue if this queue is not specialty-specific."
+              : "No active facility specialties are available, so only a general queue can be created."
+          }
           onChange={(event) => setFormValues((current) => ({ ...current, facility_specialty_id: event.target.value }))}
         />
         <TextInputField

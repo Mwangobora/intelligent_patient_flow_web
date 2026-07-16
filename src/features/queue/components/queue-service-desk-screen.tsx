@@ -58,16 +58,21 @@ export function QueueServiceDeskScreen() {
   const resolvedQueueId = selectedQueueId || queuesQuery.data?.[0]?.id || "";
   const entriesQuery = useQueueEntriesQuery(
     { queue_id: resolvedQueueId || undefined, active_only: false },
-    { enabled: workspace.canViewQueues && Boolean(resolvedQueueId) },
+    {
+      enabled: workspace.canViewQueues && Boolean(resolvedQueueId),
+      refetchInterval: resolvedQueueId ? 10000 : false,
+    },
   );
   const nextEntryQuery = useNextQueueEntryQuery(resolvedQueueId || undefined, {
     enabled: workspace.canViewQueues && Boolean(resolvedQueueId),
+    refetchInterval: resolvedQueueId ? 10000 : false,
   });
   const entries = useMemo(() => sortQueueEntries(entriesQuery.data ?? []), [entriesQuery.data]);
   const nextEntry = nextEntryQuery.error?.status === 404 ? null : nextEntryQuery.data ?? entries[0] ?? null;
   const activeSelectedEntryId = selectedEntryId ?? nextEntry?.id ?? entries[0]?.id ?? null;
-  const eventsQuery = useQueueEntryEventsQuery(selectedEntryId ?? undefined, {
+  const eventsQuery = useQueueEntryEventsQuery(activeSelectedEntryId ?? undefined, {
     enabled: workspace.canViewQueues && Boolean(activeSelectedEntryId),
+    refetchInterval: activeSelectedEntryId ? 12000 : false,
   });
   const callMutation = useCallQueueEntryMutation();
   const recallMutation = useRecallQueueEntryMutation();
@@ -104,10 +109,13 @@ export function QueueServiceDeskScreen() {
     <PageContainer className="space-y-6">
       <PageHeader
         title="Queue Service Desk"
-        description="Call, recall, skip, transfer, and complete patient service from one operational screen."
+        description="Fast operational queue control for reception, nursing, and practitioner service flow."
       />
 
       <ResponsiveActionBar>
+        <Button variant="secondary" onClick={() => (window.location.href = "/queue/queues")}>
+          All queues
+        </Button>
         <div className="min-w-[280px] flex-1">
           <SelectField
             label="Selected queue"

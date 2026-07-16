@@ -1,373 +1,121 @@
 Continue the frontend for the Intelligent Patient Flow and Appointment Scheduling System.
 
-Part 1A Design System + Trust Teal/Navy colors is complete.
+Clean folder structure is already created.
+Packages are installed.
+Design system is Trust Teal + Navy.
 
-Now do PART 1B ONLY:
-Install required frontend packages and create scalable enterprise folder architecture.
+Now do PART 1C ONLY:
+Build the enterprise hospital App Shell:
+- collapsible sidebar
+- topbar
+- navigation UI
+- page container
+- reusable tabs
+- placeholder dashboard shell
 
-Do not build full pages yet.
+Do not build real module pages yet.
+Do not connect backend APIs yet.
 Do not build auth yet.
-Do not connect real backend endpoints yet.
-Do not build dashboard charts yet.
-Do not build module screens yet.
+Do not build charts yet.
+Do not add business logic.
 
-Important frontend rules:
-- Maximum 150 lines per file , set it no file wile will have 151 lines, all files must be less than that
-- Reusable components are required.
-- Clean folder structure is required.
-- Any developer should understand and continue the project easily.
+Critical rules:
+- Maximum 150 lines per file where practical.
+- If file becomes large, split it.
+- Use reusable components.
 - Use TypeScript properly.
-- Avoid `any`.
+- Avoid any.
 - No random colors.
-- Use existing Trust Teal + Navy theme tokens.
-- No API calls directly inside UI components.
-- Server/API state must use TanStack Query.
-- Local UI state must use Zustand.
-- No auth tokens in localStorage.
-- Prepare for HttpOnly cookie auth flow.
-- Axios must use withCredentials: true.
+- Use theme tokens only.
+- Use shadcn/ui where useful.
+- Use lucide-react icons.
+- Icons must be relevant to hospital/workflow context.
+- UI must look clean, serious, hospital-friendly, and enterprise-ready.
+- No childish colors.
+- No heavy gradients.
+- No glassmorphism.
+- No unnecessary animation.
+- Use Motion only for subtle sidebar/open-close transitions if already installed.
+- Accessibility matters: buttons need aria-label where appropriate.
 
-PART 1B TASKS
+Selected color system:
+- Primary teal: #088395
+- Dark navy: #102A43
+- Soft cyan: #E6F7F9
+- Background: #F8FAFC
+- Card: #FFFFFF
+- Border: #D9E2EC
+- Success: #16A34A
+- Warning: #F59E0B
+- Danger: #DC2626
+- Info: #0284C7
 
-1. Detect package manager.
+Tasks:
 
-Use the existing lockfile:
-- pnpm-lock.yaml -> use pnpm
-- package-lock.json -> use npm
-- yarn.lock -> use yarn
-- bun.lockb -> use bun
+1. Create App Shell components.
 
-Do not mix package managers.
+Create or update:
 
-2. Install required packages.
-
-Install these packages if not already installed:
-
-Core API/state:
-- axios
-- @tanstack/react-query
-- @tanstack/react-query-devtools
-- zustand
-
-Tables/charts:
-- @tanstack/react-table
-- recharts
-
-Forms/validation:
-- react-hook-form
-- zod
-- @hookform/resolvers
-
-Icons/animation/toasts:
-- lucide-react
-- motion
-- sonner
-
-Date utilities:
-- date-fns
-
-Do NOT install GSAP now.
-Reason:
-- Use Motion for React UI animations.
-- GSAP can be added later only if we need complex marketing/scroll timeline animations.
-
-3. Inspect backend apps and Swagger/OpenAPI docs if available in the repo.
-
-Create frontend folders based on backend domain modules.
-
-Backend apps are:
-- accounts/auth
-- facilities
-- patients
-- practitioners
-- scheduling
-- checkins
-- queueing
-- intelligence
-- notifications
-- reporting
-- audit
-
-Create frontend module folders for these, but do not build their full pages yet.
-
-4. Create clean frontend structure.
-
-Use this structure if compatible with the current Next.js project:
-
-src/
-  app/
-    layout.tsx
-    page.tsx
-
-  components/
-    common/
-    feedback/
-    layout/
-    navigation/
-    data-display/
-    forms/
-    charts/
-    tables/
-    providers/
-
-  config/
-    app.config.ts
-    navigation.config.ts
-    theme.config.ts
-    permissions.config.ts
-
-  features/
-    auth/
-      api/
-      components/
-      hooks/
-      schemas/
-      stores/
-      types/
-
-    dashboard/
-      api/
-      components/
-      hooks/
-      types/
-
-    appointments/
-      api/
-      components/
-      hooks/
-      schemas/
-      types/
-
-    queue/
-      api/
-      components/
-      hooks/
-      schemas/
-      types/
-
-    checkins/
-      api/
-      components/
-      hooks/
-      schemas/
-      types/
-
-    patients/
-      api/
-      components/
-      hooks/
-      schemas/
-      types/
-
-    practitioners/
-      api/
-      components/
-      hooks/
-      schemas/
-      types/
-
-    facilities/
-      api/
-      components/
-      hooks/
-      schemas/
-      types/
-
-    intelligence/
-      api/
-      components/
-      hooks/
-      schemas/
-      types/
-
-    notifications/
-      api/
-      components/
-      hooks/
-      schemas/
-      types/
-
-    reporting/
-      api/
-      components/
-      hooks/
-      schemas/
-      types/
-
-    audit/
-      api/
-      components/
-      hooks/
-      schemas/
-      types/
-
-  lib/
-    api/
-    query/
-    errors/
-    formatting/
-    permissions/
-    routes/
-    utils/
-
-  stores/
-    use-ui-store.ts
-
-  types/
-    api.ts
-    common.ts
-    pagination.ts
-    permissions.ts
-
-If the project already has a different src structure, adapt cleanly but keep the same architecture.
-
-5. Create provider setup.
-
-Create:
-- src/components/providers/app-providers.tsx
-
-Include:
-- TanStack Query QueryClientProvider
-- React Query Devtools only in development
-- Sonner Toaster
-- any future provider placeholders if needed
-
-Create:
-- src/lib/query/query-client.ts
-
-QueryClient defaults:
-- staleTime: 60 seconds for normal queries
-- gcTime: reasonable
-- retry: 1 for queries
-- retry: false for mutations if configured separately
-- refetchOnWindowFocus: false
-- do not aggressively refetch hospital workflow data unless hooks choose to
-
-6. Create Axios foundation.
-
-Create:
-- src/lib/api/api-client.ts
-- src/lib/api/api-error.ts
-- src/lib/api/endpoints.ts
-
-api-client.ts:
-- create axios instance
-- baseURL from NEXT_PUBLIC_API_BASE_URL
-- withCredentials: true
-- JSON headers
-- response interceptor
-- normalize errors using api-error.ts
-- do not store tokens
-- do not read tokens from localStorage
-- prepare 401 handling but do not implement full refresh flow yet
-
-api-error.ts:
-- ApiError type
-- normalizeApiError
-- getErrorMessage
-
-endpoints.ts:
-Create grouped endpoint placeholders only:
-- auth
-- facilities
-- patients
-- practitioners
-- appointments
-- checkins
-- queueing
-- intelligence
-- notifications
-- reporting
-- audit
-
-Do not write every endpoint yet.
-Keep it readable.
-
-7. Create query key factory.
-
-Create:
-- src/lib/query/query-keys.ts
-
-Use grouped query keys:
-- auth
-- dashboard
-- appointments
-- queueing
-- checkins
-- patients
-- practitioners
-- facilities
-- intelligence
-- notifications
-- reporting
-- audit
-
-Keep it small and scalable.
-
-8. Create Zustand UI store.
-
-Create:
-- src/stores/use-ui-store.ts
-
-State:
-- sidebarCollapsed
-- setSidebarCollapsed
-- toggleSidebar
-- commandMenuOpen
-- setCommandMenuOpen
+src/components/layout/app-shell.tsx
+src/components/layout/sidebar.tsx
+src/components/layout/sidebar-nav-item.tsx
+src/components/layout/topbar.tsx
+src/components/layout/page-container.tsx
+src/components/layout/page-header.tsx
 
 Rules:
-- Do not store server data here.
-- Do not store large API responses here.
-- Do not store auth token here.
-- Keep file small.
+- app-shell.tsx should compose Sidebar + Topbar + main content.
+- sidebar.tsx should support collapsed and expanded state from Zustand UI store.
+- sidebar-nav-item.tsx should handle active route style.
+- topbar.tsx should contain:
+  - sidebar toggle button
+  - page title area placeholder
+  - search placeholder
+  - notification icon placeholder
+  - user menu placeholder
+- page-container.tsx should apply consistent width, padding, and spacing.
+- page-header.tsx should support title, description, and optional actions.
 
-9. Create shared types.
+2. Sidebar behavior.
 
-Create:
-- src/types/api.ts
-- src/types/pagination.ts
-- src/types/permissions.ts
-- src/types/common.ts
+Sidebar must:
+- Open/close smoothly.
+- Use sidebarCollapsed from use-ui-store.
+- Have a visible collapse/expand button.
+- Use relevant icons:
+  Dashboard -> LayoutDashboard
+  Appointments -> CalendarClock
+  Queue -> ListOrdered
+  Check-ins -> QrCode or ScanLine
+  Patients -> Users
+  Practitioners -> Stethoscope or UserRoundCheck
+  Facilities -> Hospital
+  Intelligence -> BrainCircuit
+  Notifications -> Bell
+  Reports -> FileBarChart or FileText
+  Audit Logs -> ShieldCheck
+  Settings -> Settings
+- Use PanelLeftClose and PanelLeftOpen for collapse/expand.
+- In collapsed mode, show only icons.
+- In expanded mode, show icon + label.
+- Active item should use primary teal styling.
+- Hover state should be soft cyan.
+- Sidebar background should use dark navy.
+- Text should remain readable.
 
-Include:
-api.ts:
-- ApiResponse<T>
-- ApiListResponse<T>
-- ApiErrorResponse
+3. Navigation config.
 
-pagination.ts:
-- PaginatedResponse<T>
-- PaginationParams
+Update:
 
-permissions.ts:
-- PermissionCode type as string for now
-- UserPermissionSet type
+src/config/navigation.config.ts
 
-common.ts:
-- UUID
-- ISODateTime
-- SelectOption
-- StatusVariant
+Each nav item should include:
+- label
+- href
+- icon
+- requiredPermission
 
-Keep types generic only.
-Do not create all domain model types yet.
-
-10. Create app config files.
-
-Create:
-- src/config/app.config.ts
-- src/config/permissions.config.ts
-- src/config/navigation.config.ts
-
-app.config.ts:
-- app name
-- short name
-- API base env accessor
-- default date format if useful
-
-permissions.config.ts:
-Include permission constants from backend style:
+Use backend permission style:
 - reporting_analytics.view
 - scheduling_appointment.view
 - queueing_entry.view
@@ -375,82 +123,109 @@ Include permission constants from backend style:
 - patients_patient.view
 - practitioners_practitioner.view
 - facilities_facility.view
+- intelligence_prediction.view
+- notifications_notification.view
 - reporting_report.view
 - audit_log.view
 
-navigation.config.ts:
-Create initial nav items:
-- Dashboard
-- Appointments
-- Queue
-- Check-ins
-- Patients
-- Practitioners
-- Facilities
-- Intelligence
-- Notifications
-- Reports
-- Audit Logs
-- Settings
+Do not implement real permission filtering yet.
+Just keep the config ready.
 
-Each item:
-- label
-- href
-- icon name or icon component
-- requiredPermission
+4. Create reusable tabs component.
 
-Do not implement permission filtering yet.
-Just prepare config.
+Create:
 
-11. Create placeholder README for frontend architecture.
+src/components/navigation/page-tabs.tsx
+
+Rules:
+- Used later for module pages.
+- Supports:
+  - tabs array
+  - active tab
+  - href
+  - optional badge count
+  - optional disabled
+- Clean hospital enterprise style.
+- Must not exceed 150 lines.
+- Do not use business logic.
+- Use shadcn/ui or simple Tailwind.
+
+5. Create reusable UI helpers if missing.
 
 Create or update:
-- FRONTEND_ARCHITECTURE.md
 
-Include:
-- package choices
-- folder structure explanation
-- TanStack Query vs Zustand rule
-- max 150 lines per file rule
-- API client rule
-- no localStorage token rule
-- module folder convention
+src/components/common/metric-card.tsx
+src/components/common/status-badge.tsx
+src/components/common/empty-state.tsx
+src/components/common/loading-state.tsx
+src/components/common/error-state.tsx
+src/components/common/section-card.tsx
 
-Keep it clear and practical.
+Rules:
+- Each file under 150 lines.
+- No API calls.
+- No random colors.
+- StatusBadge must use status color config.
+- MetricCard should support:
+  - title
+  - value
+  - description
+  - icon
+  - trend optional
+- SectionCard should be reusable for dashboard panels.
 
-12. Update .env.example.
+6. Create placeholder dashboard page.
 
-Add:
-NEXT_PUBLIC_API_BASE_URL=http://localhost:8000/api/v1
+Update app/page.tsx or create dashboard route based on existing project structure.
 
-Do not add secrets.
+Show:
+- AppShell
+- PageHeader title: Hospital Operations Dashboard
+- Four MetricCard placeholders:
+  - Patients Waiting
+  - Appointments Today
+  - Active Queues
+  - Average Wait Time
+- Two SectionCard placeholders:
+  - Queue Activity
+  - Appointment Utilization
+- A sample PageTabs preview if appropriate.
 
-13. Do not build real pages yet.
+Important:
+- This page is visual only.
+- Do not fetch backend data yet.
+- Use realistic placeholder values only.
+- Keep it clean.
 
-Only update homepage minimally if needed to confirm providers and no build errors.
-Do not create full dashboard UI in this step.
+7. Mobile responsiveness.
 
-14. Run checks.
+Sidebar should:
+- Work well on desktop.
+- Be prepared for mobile.
+- If mobile sidebar is not fully implemented now, keep structure ready.
+- Do not overcomplicate.
 
-Use the detected package manager.
+8. File-size discipline.
 
-Examples:
+Before finishing:
+- Check newly created files.
+- If any file is over 150 lines, split it.
+- Prefer small focused components.
 
+9. Run checks.
+
+Use current package manager.
+
+Run:
 npm run lint
 npm run build
 
-or:
+or pnpm/yarn/bun equivalent.
 
-pnpm lint
-pnpm build
-
-Also show installed package versions from package.json.
-
-Stop after PART 1B only and show:
-- packages installed
-- files/folders created
-- provider setup summary
-- API client summary
-- Zustand store summary
+Stop after Part 1C only and show:
+- files created/changed
+- components added
+- sidebar behavior added
+- icons used
 - command results
-- any assumptions
+- any file that is near or above 150 lines

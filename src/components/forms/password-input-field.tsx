@@ -49,7 +49,7 @@ export function PasswordInputField({
           type="button"
           aria-label={visible ? "Hide password" : "Show password"}
           onClick={() => setVisible((current) => !current)}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+          className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-muted-foreground"
         >
           {visible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
         </button>

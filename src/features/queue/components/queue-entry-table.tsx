@@ -31,7 +31,15 @@ export function QueueEntryTable({
             entries.map((entry) => (
               <tr
                 key={entry.id}
-                className={selectedEntryId === entry.id ? "bg-secondary/40" : ""}
+                className={
+                  onSelect
+                    ? selectedEntryId === entry.id
+                      ? "cursor-pointer bg-secondary/40"
+                      : "cursor-pointer"
+                    : selectedEntryId === entry.id
+                      ? "bg-secondary/40"
+                      : ""
+                }
                 onClick={() => onSelect?.(entry)}
               >
                 <td className="px-4 py-4 font-semibold text-foreground">{entry.display_queue_number}</td>

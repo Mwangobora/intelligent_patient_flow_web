@@ -70,7 +70,7 @@ export function PatientSearchSelect({
                 key={patient.id}
                 type="button"
                 onClick={() => onChange(patient.id)}
-                className={`flex w-full items-start gap-3 rounded-lg px-3 py-2 text-left transition-colors ${
+                className={`flex w-full cursor-pointer items-start gap-3 rounded-lg px-3 py-2 text-left transition-colors ${
                   value === patient.id ? "bg-secondary" : "hover:bg-secondary/70"
                 }`}
               >

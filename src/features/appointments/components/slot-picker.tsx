@@ -39,7 +39,7 @@ export function SlotPicker({
           key={slot.id}
           type="button"
           onClick={() => onSelect(slot)}
-          className={`rounded-xl border px-4 py-4 text-left transition-colors ${
+          className={`cursor-pointer rounded-xl border px-4 py-4 text-left transition-colors ${
             selectedSlotId === slot.id
               ? "border-primary bg-secondary"
               : "border-border bg-card hover:bg-secondary/60"

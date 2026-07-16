@@ -18,7 +18,7 @@ export function QueueEntryMobileCard({
 }: QueueEntryMobileCardProps) {
   return (
     <Card
-      className={selected ? "border-primary/40" : undefined}
+      className={selected ? "cursor-pointer border-primary/40" : "cursor-pointer"}
       onClick={() => onSelect?.(entry)}
     >
       <CardContent className="space-y-4 p-4">

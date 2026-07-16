@@ -59,7 +59,7 @@ export function PractitionerSearchSelect({
               key={practitioner.id}
               type="button"
               onClick={() => onChange(practitioner.id)}
-              className={`flex w-full items-start gap-3 rounded-lg px-3 py-2 text-left transition-colors ${
+              className={`flex w-full cursor-pointer items-start gap-3 rounded-lg px-3 py-2 text-left transition-colors ${
                 value === practitioner.id ? "bg-secondary" : "hover:bg-secondary/70"
               }`}
             >

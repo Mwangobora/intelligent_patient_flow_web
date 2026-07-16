@@ -36,7 +36,7 @@ export function Sidebar({ pathname }: SidebarProps) {
           type="button"
           aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           onClick={toggleSidebar}
-          className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-primary-foreground/80 transition-colors hover:bg-secondary hover:text-foreground"
+          className="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg text-primary-foreground/80 transition-colors hover:bg-secondary hover:text-foreground"
         >
           {sidebarCollapsed ? (
             <PanelLeftOpen className="h-5 w-5" />

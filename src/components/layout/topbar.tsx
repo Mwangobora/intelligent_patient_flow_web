@@ -1,6 +1,8 @@
 "use client";
 
 import { Bell, PanelLeftOpen, Search, UserRound } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { FormEvent, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { useUiStore } from "@/stores/use-ui-store";
@@ -15,6 +17,31 @@ export function Topbar({
   userDisplayName = "Operations Admin",
 }: TopbarProps) {
   const { toggleSidebar } = useUiStore();
+  const router = useRouter();
+  const [search, setSearch] = useState("");
+
+  const handleSearchSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const rawQuery = search.trim();
+    if (!rawQuery) return;
+
+    const prefixMatch = rawQuery.match(/^([a-z-]+)\s*:\s*(.+)$/i);
+    const prefix = prefixMatch?.[1].toLowerCase();
+    const query = (prefixMatch?.[2] ?? rawQuery).trim();
+    const encodedQuery = encodeURIComponent(query);
+    const targetPath =
+      prefix === "appointment" || prefix === "appointments" || prefix === "appt"
+        ? "/appointments"
+        : prefix === "queue" || prefix === "queues"
+          ? "/queue/queues"
+          : prefix === "checkin" || prefix === "checkins"
+            ? "/checkins"
+            : prefix === "practitioner" || prefix === "practitioners" || prefix === "doctor"
+              ? "/practitioners"
+              : "/patients";
+
+    router.push(`${targetPath}?search=${encodedQuery}`);
+  };
 
   return (
     <header className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur-sm">
@@ -35,12 +62,20 @@ export function Topbar({
           <p className="truncate text-sm text-muted-foreground">{pageTitle}</p>
         </div>
 
-        <div className="hidden min-w-[280px] items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 lg:flex">
+        <form
+          onSubmit={handleSearchSubmit}
+          className="hidden min-w-[320px] items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 transition focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/15 lg:flex"
+          role="search"
+        >
           <Search className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm text-muted-foreground">
-            Search patients, appointments, queues
-          </span>
-        </div>
+          <input
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+            placeholder="Search patients, appointments, queues"
+            aria-label="Search hospital workspace"
+          />
+        </form>
 
         <Button variant="secondary" className="h-10 w-10 px-0" aria-label="Notifications">
           <Bell className="h-5 w-5" />

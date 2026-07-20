@@ -1,5 +1,6 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { Building2, CalendarDays, RefreshCw, Stethoscope, UserRoundCheck } from "lucide-react";
 
@@ -41,10 +42,11 @@ import type { PractitionerRecord } from "../types/practitioner.types";
 
 export function PractitionersListScreen() {
   const workspace = usePractitionerWorkspace();
+  const searchParams = useSearchParams();
   const hasGlobalAccess = Boolean(workspace.data?.has_global_access || workspace.data?.is_superuser);
   const organizationId = hasGlobalAccess ? undefined : workspace.activeMembership?.organization;
   const hasPractitionerScope = hasGlobalAccess || Boolean(organizationId);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(searchParams.get("search") ?? "");
   const [sheetMode, setSheetMode] = useState<"practitioner" | "type" | null>(null);
   const [deactivateTarget, setDeactivateTarget] = useState<PractitionerRecord | null>(null);
   const [filters, setFilters] = useState({

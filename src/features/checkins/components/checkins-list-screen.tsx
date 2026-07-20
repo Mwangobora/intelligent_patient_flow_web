@@ -3,6 +3,7 @@
 import { format } from "date-fns";
 import Link from "next/link";
 import { QrCode, RefreshCw, TicketPlus, UserCheck } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 
 import { EmptyState } from "@/components/common/empty-state";
@@ -34,8 +35,9 @@ const today = format(new Date(), "yyyy-MM-dd");
 
 export function CheckinsListScreen() {
   const workspace = useCheckinWorkspace();
+  const searchParams = useSearchParams();
   const [selectedCheckin, setSelectedCheckin] = useState<CheckinRecord | null>(null);
-  const [patientSearch, setPatientSearch] = useState("");
+  const [patientSearch, setPatientSearch] = useState(searchParams.get("search") ?? "");
   const debouncedPatientSearch = useDebouncedValue(patientSearch);
   const [filters, setFilters] = useState({
     facility_id: workspace.activeMembership?.facility ?? "",

@@ -3,6 +3,7 @@
 import { format } from "date-fns";
 import Link from "next/link";
 import { ListOrdered, MonitorPlay, RefreshCw } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 
 import { EmptyState } from "@/components/common/empty-state";
@@ -38,9 +39,11 @@ const today = format(new Date(), "yyyy-MM-dd");
 
 export function QueueListScreen() {
   const workspace = useQueueWorkspace();
+  const searchParams = useSearchParams();
   const [showCreateQueue, setShowCreateQueue] = useState(false);
   const [filters, setFilters] = useState({
     facility_id: "",
+    search: searchParams.get("search") ?? "",
     queue_date: today,
     status: "" as QueueStatus | "",
     service_point_id: "",
@@ -101,6 +104,24 @@ export function QueueListScreen() {
       completedToday,
     };
   }, [entriesQuery.data, filters.queue_date, queuesQuery.data]);
+  const filteredQueues = useMemo(() => {
+    const query = filters.search.trim().toLowerCase();
+    const queues = queuesQuery.data ?? [];
+    if (!query) return queues;
+
+    return queues.filter((queue) =>
+      [
+        queue.service_point_name,
+        queue.service_point_code,
+        queue.specialty_name,
+        queue.facility_name,
+        queue.status,
+        queue.queue_date,
+      ]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(query)),
+    );
+  }, [filters.search, queuesQuery.data]);
 
   if (workspace.isLoading) {
     return <LoadingState title="Loading queues" description="Preparing the queue management workspace." />;
@@ -131,6 +152,12 @@ export function QueueListScreen() {
         filters={
           <ResponsiveFilterPanel title="Queue filters" description="Filter queues by service point, specialty, date, or operational status.">
             <div className="grid gap-4 lg:grid-cols-5">
+              <TextInputField
+                label="Search"
+                placeholder="Service point, code, specialty, status"
+                value={filters.search}
+                onChange={(event) => setFilters((current) => ({ ...current, search: event.target.value }))}
+              />
               <TextInputField label="Queue date" type="date" value={filters.queue_date} onChange={(event) => setFilters((current) => ({ ...current, queue_date: event.target.value }))} />
               {hasGlobalAccess ? (
                 <SelectField
@@ -224,16 +251,16 @@ export function QueueListScreen() {
             onAction={() => void queuesQuery.refetch()}
           />
         ) : null}
-        {!queuesQuery.isLoading && !queuesQuery.error && hasQueueScope && !(queuesQuery.data?.length) ? (
+        {!queuesQuery.isLoading && !queuesQuery.error && hasQueueScope && !filteredQueues.length ? (
           <EmptyState title="No queues found" description="Create a queue or adjust the selected date and service filters." />
         ) : null}
 
         <QueuesTable
-          queues={hasQueueScope ? queuesQuery.data ?? [] : []}
+          queues={hasQueueScope ? filteredQueues : []}
           emptyMessage="No facility queue data is available yet."
         />
         <div className="space-y-4 md:hidden">
-          {(queuesQuery.data ?? []).map((queue) => (
+          {filteredQueues.map((queue) => (
             <QueueMobileCard key={queue.id} queue={queue} />
           ))}
         </div>

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { RefreshCw, UserPlus } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 import { EmptyState } from "@/components/common/empty-state";
@@ -31,8 +32,9 @@ import type { PatientRecord } from "../types/patient.types";
 
 export function PatientsListScreen() {
   const workspace = usePatientWorkspace();
+  const searchParams = useSearchParams();
   const [deactivateTarget, setDeactivateTarget] = useState<PatientRecord | null>(null);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(searchParams.get("search") ?? "");
   const debouncedSearch = useDebouncedValue(search);
   const [filters, setFilters] = useState({
     facility_id: workspace.activeMembership?.facility ?? "",

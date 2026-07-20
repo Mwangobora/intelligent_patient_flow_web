@@ -3,6 +3,7 @@
 import { format } from "date-fns";
 import Link from "next/link";
 import { CalendarClock, RefreshCw } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 
 import { EmptyState } from "@/components/common/empty-state";
@@ -48,10 +49,12 @@ function buildDateTimeRange(date: string, isEnd = false) {
 }
 
 export function AppointmentsListScreen() {
+  const searchParams = useSearchParams();
   const { data: currentUser, isLoading: isUserLoading } = useCurrentUserQuery();
   const activeMembership = currentUser?.memberships?.find((item) => item.is_active) ?? currentUser?.memberships?.[0];
-  const [searchText, setSearchText] = useState("");
-  const [patientSearch, setPatientSearch] = useState("");
+  const initialSearch = searchParams.get("search") ?? "";
+  const [searchText, setSearchText] = useState(initialSearch);
+  const [patientSearch, setPatientSearch] = useState(initialSearch);
   const [cancelTarget, setCancelTarget] = useState<AppointmentRecord | null>(null);
   const debouncedSearch = useDebouncedValue(searchText);
   const debouncedPatientSearch = useDebouncedValue(patientSearch);

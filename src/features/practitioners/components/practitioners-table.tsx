@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
+import { Calendar, Eye } from "lucide-react";
 
 import { formatPractitionerName } from "./practitioner-formatters";
 import type { PractitionerRecord } from "../types/practitioner.types";
@@ -32,8 +33,8 @@ export function PractitionersTable({ practitioners, onDeactivate }: Practitioner
               <td className="px-4 py-4">{practitioner.is_active ? "Active" : "Inactive"}</td>
               <td className="px-4 py-4">
                 <div className="flex flex-wrap gap-2">
-                  <Link href={`/practitioners/${practitioner.id}`}><Button variant="secondary">View</Button></Link>
-                  <Link href={`/practitioners/${practitioner.id}/schedule`}><Button variant="secondary">Schedule</Button></Link>
+                  <Link href={`/practitioners/${practitioner.id}`}><Button variant="secondary"><Eye className="mr-2 h-4 w-4" />View</Button></Link>
+                  <Link href={`/practitioners/${practitioner.id}/schedule`}><Button variant="secondary"><Calendar className="mr-2 h-4 w-4" />Schedule</Button></Link>
                   {practitioner.is_active ? <Button variant="danger" onClick={() => onDeactivate(practitioner)}>Deactivate</Button> : null}
                 </div>
               </td>

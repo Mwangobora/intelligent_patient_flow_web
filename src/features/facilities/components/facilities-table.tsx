@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Building2 } from "lucide-react";
+import { Eye } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
@@ -38,7 +38,7 @@ export function FacilitiesTable({ facilities, canDeactivate, onDeactivate }: Fac
               <td className="px-4 py-4">
                 <div className="flex flex-wrap gap-2">
                   <Link href={`/facilities/${facility.id}`}>
-                    <Button variant="secondary"><Building2 className="mr-2 h-4 w-4" />View</Button>
+                    <Button variant="secondary"><Eye className="mr-2 h-4 w-4" />View</Button>
                   </Link>
                   {canDeactivate && facility.is_active ? (
                     <Button variant="danger" onClick={() => onDeactivate(facility)}>Deactivate</Button>

@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
+import { Eye } from "lucide-react";
 
 import { formatQueueDate } from "./queue-formatters";
 import { QueueStatusBadge } from "./queue-status-badge";
@@ -39,8 +40,8 @@ export function QueuesTable({
                 <td className="px-4 py-4">{queue.next_sequence_number}</td>
                 <td className="px-4 py-4">
                   <div className="flex flex-wrap gap-2">
-                    <Link href={`/queue/queues/${queue.id}`}><Button variant="secondary">View</Button></Link>
-                    <Link href={`/queue/service-desk?queueId=${queue.id}`}><Button>Service desk</Button></Link>
+                    <Link href={`/queue/queues/${queue.id}`}><Button variant="secondary"><Eye className="mr-2 h-4 w-4" />View</Button></Link>
+                    <Link href={`/queue/service-desk?queueId=${queue.id}`}><Button variant="secondary"><Eye className="mr-2 h-4 w-4" />Service desk</Button></Link>
                   </div>
                 </td>
               </tr>

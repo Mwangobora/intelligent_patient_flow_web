@@ -15,11 +15,18 @@ export function useCheckinWorkspace() {
     [userQuery.data?.memberships],
   );
 
+  const hasScope = Boolean(
+    userQuery.data?.has_global_access ||
+      userQuery.data?.is_superuser ||
+      activeMembership?.organization ||
+      activeMembership?.facility,
+  );
   const can = (permission: string) => hasPermission(userQuery.data, permission);
 
   return {
     ...userQuery,
     activeMembership,
+    hasScope,
     canViewCheckins: can("checkins_checkin.view"),
     canCreateCheckins: can("checkins_checkin.create"),
     canVoidCheckins: can("checkins_checkin.void"),

@@ -18,6 +18,7 @@ import { FormSheet } from "@/components/overlays/form-sheet";
 import { SelectField } from "@/components/forms/select-field";
 import { TextInputField } from "@/components/forms/text-input-field";
 import { Button } from "@/components/ui/button";
+import { useFacilitiesQuery } from "@/features/facilities/hooks/use-facility-queries";
 
 import { useCreateQueueMutation } from "../hooks/use-queue-mutations";
 import {
@@ -39,43 +40,48 @@ export function QueueListScreen() {
   const workspace = useQueueWorkspace();
   const [showCreateQueue, setShowCreateQueue] = useState(false);
   const [filters, setFilters] = useState({
+    facility_id: "",
     queue_date: today,
     status: "" as QueueStatus | "",
     service_point_id: "",
     facility_specialty_id: "",
   });
 
-  const hasFacilityScope = Boolean(workspace.activeMembership?.facility);
+  const hasGlobalAccess = Boolean(workspace.data?.has_global_access || workspace.data?.is_superuser);
+  const hasQueueScope = hasGlobalAccess || Boolean(workspace.activeMembership?.facility);
+  const scopedFacilityId = hasGlobalAccess ? undefined : workspace.activeMembership?.facility ?? undefined;
+  const selectedFacilityId = filters.facility_id || scopedFacilityId;
+  const facilitiesQuery = useFacilitiesQuery({ is_active: true }, { enabled: hasGlobalAccess });
   const queuesQuery = useQueuesQuery(
     {
-      facility_id: workspace.activeMembership?.facility ?? undefined,
+      facility_id: selectedFacilityId,
       queue_date: filters.queue_date,
       status: filters.status,
       service_point_id: filters.service_point_id || undefined,
       facility_specialty_id: filters.facility_specialty_id || undefined,
     },
-    { enabled: workspace.canViewQueues && hasFacilityScope },
+    { enabled: workspace.canViewQueues && hasQueueScope },
   );
   const entriesQuery = useQueueEntriesQuery(
     {
-      facility_id: workspace.activeMembership?.facility ?? undefined,
+      facility_id: selectedFacilityId,
       active_only: false,
     },
-    { enabled: workspace.canViewQueues && hasFacilityScope },
+    { enabled: workspace.canViewQueues && hasQueueScope },
   );
   const servicePointsQuery = useServicePointsLookupQuery(
     {
-      facility_id: workspace.activeMembership?.facility ?? undefined,
+      facility_id: selectedFacilityId,
       is_active: true,
     },
-    { enabled: hasFacilityScope },
+    { enabled: Boolean(selectedFacilityId) },
   );
   const specialtiesQuery = useFacilitySpecialtiesLookupQuery(
     {
-      facility_id: workspace.activeMembership?.facility ?? undefined,
+      facility_id: selectedFacilityId,
       is_active: true,
     },
-    { enabled: hasFacilityScope },
+    { enabled: Boolean(selectedFacilityId) },
   );
   const createQueueMutation = useCreateQueueMutation();
 
@@ -115,17 +121,32 @@ export function QueueListScreen() {
         actions={
           <ResponsiveActionBar>
             <Link href="/queue/service-desk"><Button><ListOrdered className="mr-2 h-4 w-4" />Service desk</Button></Link>
-            {workspace.canManageQueues && hasFacilityScope ? <Button onClick={() => setShowCreateQueue(true)}>Create queue</Button> : null}
+            {workspace.canManageQueues && Boolean(selectedFacilityId) ? <Button onClick={() => setShowCreateQueue(true)}>Create queue</Button> : null}
             <Link href="/queue/display"><Button variant="secondary"><MonitorPlay className="mr-2 h-4 w-4" />Display</Button></Link>
-            <Button variant="secondary" onClick={() => void Promise.all([queuesQuery.refetch(), entriesQuery.refetch()])} disabled={!hasFacilityScope}>
+            <Button variant="secondary" onClick={() => void Promise.all([queuesQuery.refetch(), entriesQuery.refetch(), facilitiesQuery.refetch()])} disabled={!hasQueueScope}>
               <RefreshCw className="mr-2 h-4 w-4" />Refresh
             </Button>
           </ResponsiveActionBar>
         }
         filters={
           <ResponsiveFilterPanel title="Queue filters" description="Filter queues by service point, specialty, date, or operational status.">
-            <div className="grid gap-4 lg:grid-cols-4">
+            <div className="grid gap-4 lg:grid-cols-5">
               <TextInputField label="Queue date" type="date" value={filters.queue_date} onChange={(event) => setFilters((current) => ({ ...current, queue_date: event.target.value }))} />
+              {hasGlobalAccess ? (
+                <SelectField
+                  label="Facility"
+                  value={filters.facility_id}
+                  onChange={(event) =>
+                    setFilters((current) => ({
+                      ...current,
+                      facility_id: event.target.value,
+                      service_point_id: "",
+                      facility_specialty_id: "",
+                    }))
+                  }
+                  options={[{ label: "All facilities", value: "" }, ...(facilitiesQuery.data ?? []).map((facility) => ({ label: facility.name, value: facility.id }))]}
+                />
+              ) : null}
               <SelectField
                 label="Queue status"
                 value={filters.status}
@@ -138,7 +159,7 @@ export function QueueListScreen() {
                   { label: "Closed", value: "closed" },
                   { label: "Cancelled", value: "cancelled" },
                 ]}
-                disabled={!hasFacilityScope}
+                disabled={!hasQueueScope}
               />
               <SelectField
                 label="Service point"
@@ -148,7 +169,7 @@ export function QueueListScreen() {
                   { label: "All service points", value: "" },
                   ...(servicePointsQuery.data ?? []).map((point) => ({ label: `${point.name} (${point.code})`, value: point.id })),
                 ]}
-                disabled={!hasFacilityScope}
+                disabled={!selectedFacilityId}
               />
               <SelectField
                 label="Specialty queue"
@@ -158,20 +179,20 @@ export function QueueListScreen() {
                   { label: "All specialties", value: "" },
                   ...(specialtiesQuery.data ?? []).map((specialty) => ({ label: specialty.specialty_name, value: specialty.id })),
                 ]}
-                disabled={!hasFacilityScope}
+                disabled={!selectedFacilityId}
               />
             </div>
           </ResponsiveFilterPanel>
         }
       >
-        {!hasFacilityScope ? (
+        {!hasQueueScope ? (
           <ScopeNotice
             title="Facility scope required for queue operations"
             description="Queue management uses facility-level service points and checked-in patients. Link this account to a facility membership to start opening queues and serving patients."
           />
         ) : null}
 
-        {workspace.canManageQueues && hasFacilityScope ? (
+        {workspace.canManageQueues && Boolean(selectedFacilityId) ? (
           <FormSheet open={showCreateQueue} title="Create queue" description="Open a new general or specialty queue for the selected service point." onOpenChange={setShowCreateQueue}>
             <QueueCreateForm
               servicePoints={servicePointsQuery.data ?? []}
@@ -203,12 +224,12 @@ export function QueueListScreen() {
             onAction={() => void queuesQuery.refetch()}
           />
         ) : null}
-        {!queuesQuery.isLoading && !queuesQuery.error && hasFacilityScope && !(queuesQuery.data?.length) ? (
+        {!queuesQuery.isLoading && !queuesQuery.error && hasQueueScope && !(queuesQuery.data?.length) ? (
           <EmptyState title="No queues found" description="Create a queue or adjust the selected date and service filters." />
         ) : null}
 
         <QueuesTable
-          queues={hasFacilityScope ? queuesQuery.data ?? [] : []}
+          queues={hasQueueScope ? queuesQuery.data ?? [] : []}
           emptyMessage="No facility queue data is available yet."
         />
         <div className="space-y-4 md:hidden">

@@ -17,6 +17,7 @@ import { FormSheet } from "@/components/overlays/form-sheet";
 import { SelectField } from "@/components/forms/select-field";
 import { TextInputField } from "@/components/forms/text-input-field";
 import { Button } from "@/components/ui/button";
+import { useFacilitiesQuery as useAllFacilitiesQuery } from "@/features/facilities/hooks/use-facility-queries";
 
 import { useCreatePractitionerMutation, useCreatePractitionerTypeMutation, useDeactivatePractitionerMutation } from "../hooks/use-practitioner-mutations";
 import {
@@ -40,7 +41,9 @@ import type { PractitionerRecord } from "../types/practitioner.types";
 
 export function PractitionersListScreen() {
   const workspace = usePractitionerWorkspace();
-  const organizationId = workspace.activeMembership?.organization;
+  const hasGlobalAccess = Boolean(workspace.data?.has_global_access || workspace.data?.is_superuser);
+  const organizationId = hasGlobalAccess ? undefined : workspace.activeMembership?.organization;
+  const hasPractitionerScope = hasGlobalAccess || Boolean(organizationId);
   const [search, setSearch] = useState("");
   const [sheetMode, setSheetMode] = useState<"practitioner" | "type" | null>(null);
   const [deactivateTarget, setDeactivateTarget] = useState<PractitionerRecord | null>(null);
@@ -53,7 +56,9 @@ export function PractitionersListScreen() {
   });
 
   const typesQuery = usePractitionerTypesQuery({ is_active: true }, { enabled: workspace.canViewTypes });
-  const facilitiesQuery = useFacilitiesLookupQuery({ organization_id: organizationId, is_active: true }, { enabled: Boolean(organizationId) });
+  const facilitiesQuery = useFacilitiesLookupQuery({ organization_id: organizationId, is_active: true }, { enabled: Boolean(organizationId) && !hasGlobalAccess });
+  const allFacilitiesQuery = useAllFacilitiesQuery({ is_active: true }, { enabled: hasGlobalAccess });
+  const facilityOptions = hasGlobalAccess ? allFacilitiesQuery.data : facilitiesQuery.data;
   const departmentsQuery = useDepartmentsLookupQuery({ facility_id: filters.facility_id || undefined, is_active: true }, { enabled: Boolean(filters.facility_id) });
   const facilitySpecialtiesQuery = useFacilitySpecialtiesLookupQuery({ facility_id: filters.facility_id || undefined, is_active: true }, { enabled: Boolean(filters.facility_id) });
   const practitionersQuery = usePractitionersQuery(
@@ -64,7 +69,7 @@ export function PractitionersListScreen() {
       is_active: filters.is_active === "" ? undefined : filters.is_active === "true",
       search: search || undefined,
     },
-    { enabled: workspace.canViewPractitioners && Boolean(organizationId) },
+    { enabled: workspace.canViewPractitioners && hasPractitionerScope },
   );
   const facilityAssignmentsQuery = usePractitionerFacilityAssignmentsQuery(
     {
@@ -72,7 +77,7 @@ export function PractitionersListScreen() {
       facility_id: filters.facility_id || undefined,
       is_active: true,
     },
-    { enabled: workspace.canViewPractitioners && Boolean(organizationId) },
+    { enabled: workspace.canViewPractitioners && hasPractitionerScope },
   );
   const departmentAssignmentsQuery = usePractitionerDepartmentAssignmentsQuery(
     {
@@ -81,7 +86,7 @@ export function PractitionersListScreen() {
       department_id: filters.department_id || undefined,
       is_active: true,
     },
-    { enabled: workspace.canViewPractitioners && Boolean(organizationId) },
+    { enabled: workspace.canViewPractitioners && hasPractitionerScope },
   );
   const specialtyAssignmentsQuery = usePractitionerSpecialtyAssignmentsQuery(
     {
@@ -90,7 +95,7 @@ export function PractitionersListScreen() {
       facility_specialty_id: filters.facility_specialty_id || undefined,
       is_active: true,
     },
-    { enabled: workspace.canViewPractitioners && Boolean(organizationId) },
+    { enabled: workspace.canViewPractitioners && hasPractitionerScope },
   );
 
   const createPractitionerMutation = useCreatePractitionerMutation();
@@ -135,7 +140,7 @@ export function PractitionersListScreen() {
         header={<PageHeader title="Doctor Schedule Management" description="Manage practitioners, assignments, availability, shifts, and leave from one staff workspace." />}
         actions={
           <ResponsiveActionBar>
-            <Button variant="secondary" onClick={() => void Promise.all([practitionersQuery.refetch(), facilityAssignmentsQuery.refetch(), departmentAssignmentsQuery.refetch(), specialtyAssignmentsQuery.refetch()])} disabled={!organizationId}>
+            <Button variant="secondary" onClick={() => void Promise.all([practitionersQuery.refetch(), facilitiesQuery.refetch(), allFacilitiesQuery.refetch(), facilityAssignmentsQuery.refetch(), departmentAssignmentsQuery.refetch(), specialtyAssignmentsQuery.refetch()])} disabled={!hasPractitionerScope}>
               <RefreshCw className="mr-2 h-4 w-4" />Refresh
             </Button>
             {workspace.canCreatePractitioners && organizationId ? <Button onClick={() => setSheetMode("practitioner")}>Create practitioner</Button> : null}
@@ -147,7 +152,7 @@ export function PractitionersListScreen() {
             <div className="grid gap-4 lg:grid-cols-3">
               <TextInputField label="Search" placeholder="Search practitioner name or number" value={search} onChange={(event) => setSearch(event.target.value)} />
               <SelectField label="Practitioner type" value={filters.practitioner_type_id} onChange={(event) => setFilters((current) => ({ ...current, practitioner_type_id: event.target.value }))} options={[{ label: "All types", value: "" }, ...(typesQuery.data ?? []).map((item) => ({ label: item.name, value: item.id }))]} />
-              <SelectField label="Facility" value={filters.facility_id} onChange={(event) => setFilters((current) => ({ ...current, facility_id: event.target.value, department_id: "", facility_specialty_id: "" }))} options={[{ label: "All facilities", value: "" }, ...(facilitiesQuery.data ?? []).map((item) => ({ label: item.name, value: item.id }))]} />
+              <SelectField label="Facility" value={filters.facility_id} onChange={(event) => setFilters((current) => ({ ...current, facility_id: event.target.value, department_id: "", facility_specialty_id: "" }))} options={[{ label: "All facilities", value: "" }, ...(facilityOptions ?? []).map((item) => ({ label: item.name, value: item.id }))]} />
               <SelectField label="Department" value={filters.department_id} onChange={(event) => setFilters((current) => ({ ...current, department_id: event.target.value }))} options={[{ label: "All departments", value: "" }, ...(departmentsQuery.data ?? []).map((item) => ({ label: item.name, value: item.id }))]} disabled={!filters.facility_id} />
               <SelectField label="Specialty" value={filters.facility_specialty_id} onChange={(event) => setFilters((current) => ({ ...current, facility_specialty_id: event.target.value }))} options={[{ label: "All specialties", value: "" }, ...(facilitySpecialtiesQuery.data ?? []).map((item) => ({ label: item.specialty_name, value: item.id }))]} />
               <SelectField label="Status" value={filters.is_active} onChange={(event) => setFilters((current) => ({ ...current, is_active: event.target.value }))} options={[{ label: "All", value: "" }, { label: "Active", value: "true" }, { label: "Inactive", value: "false" }]} />
@@ -169,7 +174,7 @@ export function PractitionersListScreen() {
           }}
         />
         <PractitionerPageTabs activeTab="list" />
-        {!organizationId ? <ScopeNotice title="Organization scope required" description="Practitioner management is organization-based. Link this account to an organization membership to start managing doctor schedules." /> : null}
+        {!hasPractitionerScope ? <ScopeNotice title="Organization scope required" description="Practitioner management is organization-based. Link this account to an organization membership to start managing doctor schedules." /> : null}
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <MetricCard title="Practitioners" value={String(overview.practitioners)} description="Profiles in the current scope." icon={Stethoscope} />
           <MetricCard title="Active practitioners" value={String(overview.active)} description="Ready for assignments and scheduling." icon={UserRoundCheck} />
@@ -181,7 +186,7 @@ export function PractitionersListScreen() {
             <PractitionerForm
               organizationId={organizationId}
               practitionerTypes={typesQuery.data ?? []}
-              facilities={facilitiesQuery.data ?? []}
+              facilities={facilityOptions ?? []}
               isSubmitting={createPractitionerMutation.isPending}
               onSubmit={async (values) => {
                 await createPractitionerMutation.mutateAsync({

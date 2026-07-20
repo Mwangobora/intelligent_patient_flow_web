@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
+import { Calendar, Eye } from "lucide-react";
 
 import { CheckinMethodBadge, CheckinModeBadge, CheckinStatusBadge } from "./checkin-status-badge";
 import { formatCheckinDateTime, getCheckinPatientSummary } from "./checkin-formatters";
@@ -42,9 +43,9 @@ export function CheckinsTable({
               <td className="px-4 py-4"><CheckinStatusBadge checkin={checkin} /></td>
               <td className="px-4 py-4">
                 <div className="flex flex-wrap gap-2">
-                  <Link href={`/checkins/${checkin.id}`}><Button variant="secondary">View</Button></Link>
-                  {!checkin.voided_at ? <Link href="/queue/service-desk"><Button variant="secondary">Add to queue</Button></Link> : null}
-                  {canVoid && !checkin.voided_at ? <Button variant="danger" onClick={() => onVoid(checkin)}>Void</Button> : null}
+                  <Link href={`/checkins/${checkin.id}`}><Button variant="secondary"><Eye className="mr-2 h-4 w-4" />View</Button></Link>
+                  {!checkin.voided_at ? <Link href="/queue/service-desk"><Button variant="secondary"><Calendar className="mr-2 h-4 w-4" />Add to queue</Button></Link> : null}
+                  {canVoid && !checkin.voided_at ? <Button variant="danger" onClick={() => onVoid(checkin)}><Eye className="mr-2 h-4 w-4" />Void</Button> : null}
                 </div>
               </td>
             </tr>

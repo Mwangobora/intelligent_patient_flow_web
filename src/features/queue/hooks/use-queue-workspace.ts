@@ -15,7 +15,12 @@ export function useQueueWorkspace() {
     [userQuery.data?.memberships],
   );
 
-  const hasScope = Boolean(userQuery.data?.has_global_access || activeMembership?.organization || activeMembership?.facility);
+  const hasScope = Boolean(
+    userQuery.data?.has_global_access ||
+      userQuery.data?.is_superuser ||
+      activeMembership?.organization ||
+      activeMembership?.facility,
+  );
   const can = (permission: string) => hasPermission(userQuery.data, permission);
 
   return {

@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { SelectField } from "@/components/forms/select-field";
 import { TextInputField } from "@/components/forms/text-input-field";
 import { useCurrentUserQuery } from "@/features/auth/hooks/use-auth-queries";
+import { useFacilitiesQuery as useAllFacilitiesQuery } from "@/features/facilities/hooks/use-facility-queries";
 import { hasPermission } from "@/types/permissions";
 
 import { useCancelAppointmentMutation } from "../hooks/use-appointment-mutations";
@@ -65,29 +66,37 @@ export function AppointmentsListScreen() {
   });
 
   const canViewAppointments = hasPermission(currentUser, "scheduling_appointment.view");
-  const hasScope = Boolean(currentUser?.has_global_access || activeMembership?.organization || activeMembership?.facility);
+  const hasGlobalAccess = Boolean(currentUser?.has_global_access || currentUser?.is_superuser);
+  const hasScope = Boolean(hasGlobalAccess || activeMembership?.organization || activeMembership?.facility);
+  const organizationId = hasGlobalAccess ? undefined : activeMembership?.organization;
+  const scopedFacilityId = filters.facility_id || (hasGlobalAccess ? undefined : activeMembership?.facility) || undefined;
 
   const facilitiesQuery = useFacilitiesLookupQuery(
-    { organization_id: activeMembership?.organization, is_active: true },
-    { enabled: Boolean(activeMembership?.organization) },
+    { organization_id: organizationId, is_active: true },
+    { enabled: Boolean(organizationId) && !hasGlobalAccess },
   );
+  const allFacilitiesQuery = useAllFacilitiesQuery(
+    { is_active: true },
+    { enabled: hasGlobalAccess },
+  );
+  const facilityOptions = hasGlobalAccess ? allFacilitiesQuery.data : facilitiesQuery.data;
   const specialtiesQuery = useFacilitySpecialtiesQuery(
-    { facility_id: filters.facility_id || activeMembership?.facility || undefined, is_active: true },
-    { enabled: Boolean(filters.facility_id || activeMembership?.facility) },
+    { facility_id: scopedFacilityId, is_active: true },
+    { enabled: Boolean(scopedFacilityId) },
   );
   const practitionersQuery = usePractitionersLookupQuery(
     {
-      organization_id: activeMembership?.organization,
-      facility_id: filters.facility_id || activeMembership?.facility || undefined,
+      organization_id: organizationId,
+      facility_id: scopedFacilityId,
       is_active: true,
       search: debouncedSearch || undefined,
     },
-    { enabled: Boolean(activeMembership?.organization) },
+    { enabled: Boolean(organizationId) },
   );
 
   const appointmentsQuery = useAppointmentsQuery(
     {
-      facility_id: filters.facility_id || activeMembership?.facility || undefined,
+      facility_id: scopedFacilityId,
       patient_id: filters.patient_id || undefined,
       practitioner_id: filters.practitioner_id || undefined,
       facility_specialty_id: filters.facility_specialty_id || undefined,
@@ -140,7 +149,7 @@ export function AppointmentsListScreen() {
         actions={
           <ResponsiveActionBar>
             <Link href="/appointments/new"><Button><CalendarClock className="mr-2 h-4 w-4" />New appointment</Button></Link>
-            <Button variant="secondary" onClick={() => void appointmentsQuery.refetch()} disabled={!hasScope}>
+            <Button variant="secondary" onClick={() => void Promise.all([appointmentsQuery.refetch(), facilitiesQuery.refetch(), allFacilitiesQuery.refetch()])} disabled={!hasScope}>
               <RefreshCw className="mr-2 h-4 w-4" />Refresh
             </Button>
           </ResponsiveActionBar>
@@ -151,7 +160,7 @@ export function AppointmentsListScreen() {
               <TextInputField label="Date from" type="date" value={filters.starts_from} onChange={(event) => setFilters((current) => ({ ...current, starts_from: event.target.value }))} />
               <TextInputField label="Date to" type="date" value={filters.ends_to} onChange={(event) => setFilters((current) => ({ ...current, ends_to: event.target.value }))} />
               <SelectField label="Status" options={statusOptions} value={filters.status} onChange={(event) => setFilters((current) => ({ ...current, status: event.target.value as AppointmentStatus | "" }))} />
-              <SelectField label="Facility" options={[{ label: "All facilities", value: "" }, ...(facilitiesQuery.data ?? []).map((facility) => ({ label: facility.name, value: facility.id }))]} value={filters.facility_id} onChange={(event) => setFilters((current) => ({ ...current, facility_id: event.target.value, facility_specialty_id: "", practitioner_id: "" }))} disabled={!hasScope} />
+              <SelectField label="Facility" options={[{ label: "All facilities", value: "" }, ...(facilityOptions ?? []).map((facility) => ({ label: facility.name, value: facility.id }))]} value={filters.facility_id} onChange={(event) => setFilters((current) => ({ ...current, facility_id: event.target.value, facility_specialty_id: "", practitioner_id: "" }))} disabled={!hasScope} />
               <SelectField label="Specialty" options={[{ label: "All services", value: "" }, ...(specialtiesQuery.data ?? []).map((specialty) => ({ label: specialty.specialty_name, value: specialty.id }))]} value={filters.facility_specialty_id} onChange={(event) => setFilters((current) => ({ ...current, facility_specialty_id: event.target.value }))} disabled={!hasScope} />
               <SelectField label="Practitioner" options={[{ label: "All practitioners", value: "" }, ...(practitionersQuery.data ?? []).map((practitioner) => ({ label: `${practitioner.first_name} ${practitioner.last_name}`, value: practitioner.id }))]} value={filters.practitioner_id} onChange={(event) => setFilters((current) => ({ ...current, practitioner_id: event.target.value }))} disabled={!hasScope} />
               <TextInputField label="Practitioner search" placeholder="Search practitioner name" value={searchText} onChange={(event) => setSearchText(event.target.value)} />

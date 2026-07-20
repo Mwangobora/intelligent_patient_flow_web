@@ -19,6 +19,7 @@ import { TextInputField } from "@/components/forms/text-input-field";
 import { Button } from "@/components/ui/button";
 import { useDebouncedValue } from "@/features/appointments/hooks/use-debounced-value";
 import { useFacilitiesLookupQuery } from "@/features/appointments/hooks/use-appointment-queries";
+import { useFacilitiesQuery as useAllFacilitiesQuery } from "@/features/facilities/hooks/use-facility-queries";
 
 import { useDeactivatePatientMutation } from "../hooks/use-patient-mutations";
 import { usePatientsQuery } from "../hooks/use-patient-queries";
@@ -38,23 +39,29 @@ export function PatientsListScreen() {
     active_state: "active" as "all" | "active" | "inactive",
   });
 
-  const organizationId = workspace.activeMembership?.organization;
+  const hasGlobalAccess = Boolean(workspace.data?.has_global_access || workspace.data?.is_superuser);
+  const organizationId = hasGlobalAccess ? undefined : workspace.activeMembership?.organization;
+  const scopedFacilityId =
+    filters.facility_id || (hasGlobalAccess ? undefined : workspace.activeMembership?.facility) || undefined;
   const facilitiesQuery = useFacilitiesLookupQuery(
     { organization_id: organizationId, is_active: true },
-    { enabled: Boolean(organizationId) },
+    { enabled: Boolean(organizationId) && !hasGlobalAccess },
   );
+  const allFacilitiesQuery = useAllFacilitiesQuery(
+    { is_active: true },
+    { enabled: hasGlobalAccess },
+  );
+  const facilityOptions = hasGlobalAccess ? allFacilitiesQuery.data : facilitiesQuery.data;
   const patientsQuery = usePatientsQuery(
     {
       organization_id: organizationId,
-      registered_facility_id: filters.facility_id || undefined,
+      registered_facility_id: scopedFacilityId,
       is_active:
         filters.active_state === "all" ? undefined : filters.active_state === "active",
       search: debouncedSearch || undefined,
     },
     {
-      enabled:
-        workspace.canViewPatients &&
-        Boolean(workspace.activeMembership?.organization || workspace.activeMembership?.facility),
+      enabled: workspace.canViewPatients && workspace.hasScope,
     },
   );
   const deactivateMutation = useDeactivatePatientMutation();
@@ -85,7 +92,7 @@ export function PatientsListScreen() {
                 <Button><UserPlus className="mr-2 h-4 w-4" />New patient</Button>
               </Link>
             ) : null}
-            <Button variant="secondary" onClick={() => void Promise.all([patientsQuery.refetch(), facilitiesQuery.refetch()])}>
+            <Button variant="secondary" onClick={() => void Promise.all([patientsQuery.refetch(), facilitiesQuery.refetch(), allFacilitiesQuery.refetch()])}>
               <RefreshCw className="mr-2 h-4 w-4" />Refresh
             </Button>
           </ResponsiveActionBar>
@@ -123,7 +130,7 @@ export function PatientsListScreen() {
                 onChange={(event) => setFilters((current) => ({ ...current, facility_id: event.target.value }))}
                 options={[
                   { label: "All facilities", value: "" },
-                  ...(facilitiesQuery.data ?? []).map((facility) => ({
+                  ...(facilityOptions ?? []).map((facility) => ({
                     label: facility.name,
                     value: facility.id,
                   })),

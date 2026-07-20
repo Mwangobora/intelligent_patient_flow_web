@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
+import { Eye } from "lucide-react";
 
 import { canCancelAppointment, canRescheduleAppointment } from "./appointment-action-rules";
 import { AppointmentStatusBadge } from "./appointment-status-badge";
@@ -43,7 +44,7 @@ export function AppointmentsTable({
                 <td className="px-4 py-4"><AppointmentStatusBadge status={appointment.status} /></td>
                 <td className="px-4 py-4">
                   <div className="flex flex-wrap gap-2">
-                    <Link href={`/appointments/${appointment.id}`}><Button variant="secondary">View</Button></Link>
+                    <Link href={`/appointments/${appointment.id}`}><Button variant="secondary"><Eye className="mr-2 h-4 w-4" />View</Button></Link>
                     {canRescheduleAppointment(appointment.status) ? (
                       <Link href={`/appointments/${appointment.id}/reschedule`}>
                         <Button variant="secondary">Reschedule</Button>

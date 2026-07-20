@@ -10,6 +10,7 @@ import { SectionCard } from "@/components/common/section-card";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { ResponsiveFilterPanel } from "@/components/layout/responsive-filter-panel";
+import { FormSheet } from "@/components/overlays/form-sheet";
 import { SelectField } from "@/components/forms/select-field";
 import { TextInputField } from "@/components/forms/text-input-field";
 import { Button } from "@/components/ui/button";
@@ -40,6 +41,7 @@ export function PractitionerLeaveScreen() {
   const workspace = usePractitionerWorkspace();
   const [filters, setFilters] = useState<{ status: LeaveStatus | ""; starts_from: string; ends_to: string }>({ status: "", starts_from: today, ends_to: today });
   const [actionState, setActionState] = useState<LeaveActionState>(null);
+  const [showCreate, setShowCreate] = useState(false);
   const assignmentsQuery = usePractitionerFacilityAssignmentsQuery({ organization_id: workspace.activeMembership?.organization, facility_id: workspace.activeMembership?.facility || undefined, is_active: true }, { enabled: workspace.canManageLeave && Boolean(workspace.activeMembership?.organization) });
   const leaveQuery = usePractitionerLeaveRequestsQuery({ facility_id: workspace.activeMembership?.facility || undefined, status: filters.status || undefined, starts_from: new Date(`${filters.starts_from}T00:00:00`).toISOString(), ends_to: new Date(`${filters.ends_to}T23:59:59`).toISOString() }, { enabled: workspace.canManageLeave && Boolean(workspace.activeMembership?.facility) });
   const requestMutation = useRequestLeaveMutation();
@@ -70,7 +72,7 @@ export function PractitionerLeaveScreen() {
         }}
       />
       <PractitionerPageTabs activeTab="leave" />
-      <PageHeader title="Practitioner leave requests" description="Request, approve, reject, and cancel practitioner leave using the real scheduling workflow." />
+      <PageHeader title="Practitioner leave requests" description="Request, approve, reject, and cancel practitioner leave using the real scheduling workflow." actions={<Button onClick={() => setShowCreate(true)}>Request leave</Button>} />
       <ResponsiveFilterPanel title="Leave filters" description="Filter by status and date range.">
         <div className="grid gap-4 lg:grid-cols-3">
           <TextInputField label="Starts from" type="date" value={filters.starts_from} onChange={(event) => setFilters((current) => ({ ...current, starts_from: event.target.value }))} />
@@ -78,7 +80,7 @@ export function PractitionerLeaveScreen() {
           <SelectField label="Status" value={filters.status} onChange={(event) => setFilters((current) => ({ ...current, status: event.target.value as LeaveStatus | "" }))} options={[{ label: "All statuses", value: "" }, { label: "Pending", value: "pending" }, { label: "Approved", value: "approved" }, { label: "Rejected", value: "rejected" }, { label: "Cancelled", value: "cancelled" }]} />
         </div>
       </ResponsiveFilterPanel>
-      <SectionCard title="Request leave" description="Create a new practitioner leave request for approval or review.">
+      <FormSheet open={showCreate} title="Request leave" description="Create a new practitioner leave request for approval or review." onOpenChange={setShowCreate}>
         <PractitionerLeaveForm
           assignments={assignmentsQuery.data ?? []}
           isSubmitting={requestMutation.isPending}
@@ -89,9 +91,10 @@ export function PractitionerLeaveScreen() {
               ends_at: new Date(values.ends_at).toISOString(),
               reason: values.reason || null,
             });
+            setShowCreate(false);
           }}
         />
-      </SectionCard>
+      </FormSheet>
       {leaveQuery.isLoading ? <LoadingState title="Loading leave requests" description="Fetching pending and historical practitioner leave requests." /> : null}
       {leaveQuery.error ? <ErrorState title="Unable to load leave requests" description={leaveQuery.error.message} actionLabel="Retry" onAction={() => void leaveQuery.refetch()} /> : null}
       {!leaveQuery.isLoading && !leaveQuery.error && !(leaveQuery.data ?? []).length ? <EmptyState title="No leave requests found" description="Create a leave request or adjust the current filters." /> : null}

@@ -1,11 +1,14 @@
 "use client";
 
+import { useState } from "react";
+
 import { EmptyState } from "@/components/common/empty-state";
 import { ErrorState } from "@/components/common/error-state";
 import { LoadingState } from "@/components/common/loading-state";
 import { SectionCard } from "@/components/common/section-card";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
+import { FormSheet } from "@/components/overlays/form-sheet";
 import { Button } from "@/components/ui/button";
 
 import {
@@ -26,6 +29,7 @@ import { PatientPageTabs } from "./patient-page-tabs";
 
 export function PatientIdentifiersScreen({ patientId }: { patientId: string }) {
   const workspace = usePatientWorkspace();
+  const [showAddIdentifier, setShowAddIdentifier] = useState(false);
   const patientQuery = usePatientDetailQuery(patientId, { enabled: workspace.canViewPatients });
   const patient = patientQuery.data;
   const identifierTypesQuery = usePatientIdentifierTypesQuery(
@@ -54,17 +58,19 @@ export function PatientIdentifiersScreen({ patientId }: { patientId: string }) {
       <PageHeader
         title={`${formatPatientRecordName(patient)} Identifiers`}
         description="The current backend supports adding, verifying, setting primary, and deactivating identifiers. Update-in-place is not exposed by the API yet."
+        actions={workspace.canManageIdentifiers ? <Button onClick={() => setShowAddIdentifier(true)}>Add identifier</Button> : null}
       />
       {workspace.canManageIdentifiers ? (
-        <SectionCard title="Add identifier" description="Create a new patient identifier using the real backend create endpoint.">
+        <FormSheet open={showAddIdentifier} title="Add identifier" description="Create a new patient identifier using the real backend create endpoint." onOpenChange={setShowAddIdentifier}>
           <PatientIdentifierForm
             identifierTypes={identifierTypesQuery.data ?? []}
             isSubmitting={createMutation.isPending}
             onSubmit={async (values) => {
               await createMutation.mutateAsync(values);
+              setShowAddIdentifier(false);
             }}
           />
-        </SectionCard>
+        </FormSheet>
       ) : null}
       <SectionCard title="Identifier records" description="Safe identifier metadata only. Plain sensitive values are never exposed.">
         <div className="space-y-4">

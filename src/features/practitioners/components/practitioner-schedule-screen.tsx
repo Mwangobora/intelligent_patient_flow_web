@@ -1,11 +1,15 @@
 "use client";
 
+import { useState } from "react";
+
 import { EmptyState } from "@/components/common/empty-state";
 import { ErrorState } from "@/components/common/error-state";
 import { LoadingState } from "@/components/common/loading-state";
-import { SectionCard } from "@/components/common/section-card";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
+import { ResponsiveActionBar } from "@/components/layout/responsive-action-bar";
+import { FormSheet } from "@/components/overlays/form-sheet";
+import { Button } from "@/components/ui/button";
 
 import {
   useCreateAvailabilityMutation,
@@ -36,6 +40,7 @@ type PractitionerScheduleScreenProps = {
 
 export function PractitionerScheduleScreen({ practitionerId }: PractitionerScheduleScreenProps) {
   const workspace = usePractitionerWorkspace();
+  const [sheetMode, setSheetMode] = useState<"availability" | "shift" | "leave" | null>(null);
   const practitionerQuery = usePractitionerDetailQuery(practitionerId, { enabled: workspace.canViewPractitioners });
   const assignmentsQuery = usePractitionerFacilityAssignmentsQuery({ practitioner_id: practitionerId, is_active: true }, { enabled: workspace.canViewPractitioners });
   const availabilityQuery = usePractitionerAvailabilityQuery({ practitioner_id: practitionerId, is_active: true }, { enabled: workspace.canManageAvailability });
@@ -60,10 +65,20 @@ export function PractitionerScheduleScreen({ practitionerId }: PractitionerSched
   return (
     <PageContainer className="space-y-6">
       <PractitionerPageTabs activeTab="schedule" practitionerId={practitionerId} />
-      <PageHeader title={`${formatPractitionerName(practitioner.first_name, practitioner.middle_name, practitioner.last_name)} Schedule`} description="Manage weekly availability, operational shifts, consultation rooms, and leave requests for this practitioner." />
+      <PageHeader
+        title={`${formatPractitionerName(practitioner.first_name, practitioner.middle_name, practitioner.last_name)} Schedule`}
+        description="Manage weekly availability, operational shifts, consultation rooms, and leave requests for this practitioner."
+        actions={
+          <ResponsiveActionBar>
+            {workspace.canManageAvailability ? <Button variant="secondary" onClick={() => setSheetMode("availability")}>Add availability</Button> : null}
+            {workspace.canManageShifts ? <Button onClick={() => setSheetMode("shift")}>Create shift</Button> : null}
+            {workspace.canManageLeave ? <Button variant="secondary" onClick={() => setSheetMode("leave")}>Request leave</Button> : null}
+          </ResponsiveActionBar>
+        }
+      />
       <PractitionerScheduleCalendar availability={availabilityQuery.data ?? []} shifts={shiftsQuery.data ?? []} leaveRequests={leaveQuery.data ?? []} />
       {workspace.canManageAvailability ? (
-        <SectionCard title="Create weekly availability" description="Add regular weekly availability windows used by scheduling.">
+        <FormSheet open={sheetMode === "availability"} title="Create weekly availability" description="Add regular weekly availability windows used by scheduling." onOpenChange={(open) => setSheetMode(open ? "availability" : null)}>
           <PractitionerAvailabilityForm
             assignments={assignmentsQuery.data ?? []}
             isSubmitting={createAvailabilityMutation.isPending}
@@ -77,12 +92,13 @@ export function PractitionerScheduleScreen({ practitionerId }: PractitionerSched
                 valid_until: values.valid_until || null,
                 is_available_for_appointments: values.is_available_for_appointments ?? true,
               });
+              setSheetMode(null);
             }}
           />
-        </SectionCard>
+        </FormSheet>
       ) : null}
       {workspace.canManageShifts ? (
-        <SectionCard title="Create shift" description="Create an operational shift and optionally assign a department, service point, and consultation room.">
+        <FormSheet open={sheetMode === "shift"} title="Create shift" description="Create an operational shift and optionally assign a department, service point, and consultation room." onOpenChange={(open) => setSheetMode(open ? "shift" : null)}>
           <PractitionerShiftForm
             assignments={assignmentsQuery.data ?? []}
             departmentAssignments={departmentAssignmentsQuery.data ?? []}
@@ -100,12 +116,13 @@ export function PractitionerScheduleScreen({ practitionerId }: PractitionerSched
                 accepts_appointments: values.accepts_appointments ?? true,
                 notes: values.notes || null,
               });
+              setSheetMode(null);
             }}
           />
-        </SectionCard>
+        </FormSheet>
       ) : null}
       {workspace.canManageLeave ? (
-        <SectionCard title="Request leave" description="Submit approved or pending leave windows for this practitioner.">
+        <FormSheet open={sheetMode === "leave"} title="Request leave" description="Submit approved or pending leave windows for this practitioner." onOpenChange={(open) => setSheetMode(open ? "leave" : null)}>
           <PractitionerLeaveForm
             assignments={assignmentsQuery.data ?? []}
             isSubmitting={requestLeaveMutation.isPending}
@@ -116,9 +133,10 @@ export function PractitionerScheduleScreen({ practitionerId }: PractitionerSched
                 ends_at: new Date(values.ends_at).toISOString(),
                 reason: values.reason || null,
               });
+              setSheetMode(null);
             }}
           />
-        </SectionCard>
+        </FormSheet>
       ) : null}
     </PageContainer>
   );

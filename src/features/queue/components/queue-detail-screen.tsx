@@ -11,6 +11,8 @@ import { SectionCard } from "@/components/common/section-card";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { ResponsiveActionBar } from "@/components/layout/responsive-action-bar";
+import { ConfirmDialog } from "@/components/overlays/confirm-dialog";
+import { FormSheet } from "@/components/overlays/form-sheet";
 import { Button } from "@/components/ui/button";
 
 import {
@@ -44,6 +46,8 @@ type QueueDetailScreenProps = {
 export function QueueDetailScreen({ queueId }: QueueDetailScreenProps) {
   const workspace = useQueueWorkspace();
   const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null);
+  const [showAddEntry, setShowAddEntry] = useState(false);
+  const [confirmCancelQueue, setConfirmCancelQueue] = useState(false);
   const queueQuery = useQueueDetailQuery(queueId, { enabled: workspace.canViewQueues });
   const entriesQuery = useQueueEntriesQuery(
     { queue_id: queueId, active_only: false },
@@ -108,6 +112,7 @@ export function QueueDetailScreen({ queueId }: QueueDetailScreenProps) {
       <ResponsiveActionBar>
         <Link href="/queue"><Button variant="secondary"><ArrowLeft className="mr-2 h-4 w-4" />Back</Button></Link>
         <Link href={`/queue/service-desk?queueId=${queue.id}`}><Button><PlayCircle className="mr-2 h-4 w-4" />Service desk</Button></Link>
+        {workspace.canCreateEntries ? <Button variant="secondary" onClick={() => setShowAddEntry(true)}>Add checked-in patient</Button> : null}
         <Button variant="secondary" onClick={() => void Promise.all([queueQuery.refetch(), entriesQuery.refetch(), nextEntryQuery.refetch()])}>
           <RefreshCw className="mr-2 h-4 w-4" />Refresh
         </Button>
@@ -127,7 +132,7 @@ export function QueueDetailScreen({ queueId }: QueueDetailScreenProps) {
               {queue.status === "open" ? <Button variant="secondary" disabled={busy} onClick={() => void pauseMutation.mutateAsync({ queueId: queue.id })}>Pause</Button> : null}
               {queue.status === "paused" ? <Button disabled={busy} onClick={() => void resumeMutation.mutateAsync({ queueId: queue.id })}>Resume</Button> : null}
               {["open", "paused"].includes(queue.status) ? <Button variant="secondary" disabled={busy} onClick={() => void closeMutation.mutateAsync({ queueId: queue.id })}>Close</Button> : null}
-              {!["closed", "cancelled"].includes(queue.status) ? <Button variant="danger" disabled={busy} onClick={() => void cancelMutation.mutateAsync({ queueId: queue.id })}>Cancel</Button> : null}
+              {!["closed", "cancelled"].includes(queue.status) ? <Button variant="danger" disabled={busy} onClick={() => setConfirmCancelQueue(true)}>Cancel</Button> : null}
             </div>
           ) : null}
         </SectionCard>
@@ -136,17 +141,30 @@ export function QueueDetailScreen({ queueId }: QueueDetailScreenProps) {
       </section>
 
       {workspace.canCreateEntries ? (
-        <SectionCard title="Add checked-in patient" description="Only non-voided check-ins for this facility can join the queue.">
+        <FormSheet open={showAddEntry} title="Add checked-in patient" description="Only non-voided check-ins for this facility can join the queue." onOpenChange={setShowAddEntry}>
           <QueueEntryCreateForm
             queueId={queue.id}
             checkins={checkinsQuery.data ?? []}
             isSubmitting={createEntryMutation.isPending}
             onSubmit={async (payload) => {
               await createEntryMutation.mutateAsync(payload);
+              setShowAddEntry(false);
             }}
           />
-        </SectionCard>
+        </FormSheet>
       ) : null}
+      <ConfirmDialog
+        open={confirmCancelQueue}
+        title="Cancel this queue?"
+        description="This records the queue cancellation and prevents new entries."
+        confirmLabel="Cancel queue"
+        isSubmitting={cancelMutation.isPending}
+        onClose={() => setConfirmCancelQueue(false)}
+        onConfirm={async () => {
+          await cancelMutation.mutateAsync({ queueId: queue.id });
+          setConfirmCancelQueue(false);
+        }}
+      />
 
       <SectionCard title="Queue entries" description="Waiting, called, in-service, completed, cancelled, and transferred patients.">
         {!entries.length ? (

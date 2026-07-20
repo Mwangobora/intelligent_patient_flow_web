@@ -8,12 +8,12 @@ import { ErrorState } from "@/components/common/error-state";
 import { LoadingState } from "@/components/common/loading-state";
 import { MetricCard } from "@/components/common/metric-card";
 import { ScopeNotice } from "@/components/common/scope-notice";
-import { SectionCard } from "@/components/common/section-card";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { ResponsiveActionBar } from "@/components/layout/responsive-action-bar";
 import { ResponsiveFilterPanel } from "@/components/layout/responsive-filter-panel";
 import { ResponsivePageShell } from "@/components/layout/responsive-page-shell";
+import { FormSheet } from "@/components/overlays/form-sheet";
 import { SelectField } from "@/components/forms/select-field";
 import { TextInputField } from "@/components/forms/text-input-field";
 import { Button } from "@/components/ui/button";
@@ -42,6 +42,7 @@ export function PractitionersListScreen() {
   const workspace = usePractitionerWorkspace();
   const organizationId = workspace.activeMembership?.organization;
   const [search, setSearch] = useState("");
+  const [sheetMode, setSheetMode] = useState<"practitioner" | "type" | null>(null);
   const [deactivateTarget, setDeactivateTarget] = useState<PractitionerRecord | null>(null);
   const [filters, setFilters] = useState({
     facility_id: workspace.activeMembership?.facility ?? "",
@@ -137,6 +138,8 @@ export function PractitionersListScreen() {
             <Button variant="secondary" onClick={() => void Promise.all([practitionersQuery.refetch(), facilityAssignmentsQuery.refetch(), departmentAssignmentsQuery.refetch(), specialtyAssignmentsQuery.refetch()])} disabled={!organizationId}>
               <RefreshCw className="mr-2 h-4 w-4" />Refresh
             </Button>
+            {workspace.canCreatePractitioners && organizationId ? <Button onClick={() => setSheetMode("practitioner")}>Create practitioner</Button> : null}
+            {workspace.canManageTypes ? <Button variant="secondary" onClick={() => setSheetMode("type")}>Create type</Button> : null}
           </ResponsiveActionBar>
         }
         filters={
@@ -174,7 +177,7 @@ export function PractitionersListScreen() {
           <MetricCard title="Assigned departments" value={String(overview.departments)} description="Departments covered by current assignments." icon={CalendarDays} />
         </div>
         {workspace.canCreatePractitioners && organizationId ? (
-          <SectionCard title="Create practitioner" description="Register a practitioner profile before adding assignments, availability, and shifts.">
+          <FormSheet open={sheetMode === "practitioner"} title="Create practitioner" description="Register a practitioner profile before adding assignments, availability, and shifts." onOpenChange={(open) => setSheetMode(open ? "practitioner" : null)}>
             <PractitionerForm
               organizationId={organizationId}
               practitionerTypes={typesQuery.data ?? []}
@@ -192,12 +195,13 @@ export function PractitionersListScreen() {
                   email: values.email || null,
                   phone_number: values.phone_number || null,
                 });
+                setSheetMode(null);
               }}
             />
-          </SectionCard>
+          </FormSheet>
         ) : null}
         {workspace.canManageTypes ? (
-          <SectionCard title="Create practitioner type" description="Create doctor categories that staff can use when onboarding new practitioners.">
+          <FormSheet open={sheetMode === "type"} title="Create practitioner type" description="Create doctor categories that staff can use when onboarding new practitioners." onOpenChange={(open) => setSheetMode(open ? "type" : null)}>
             <PractitionerTypeForm
               isSubmitting={createTypeMutation.isPending}
               onSubmit={async (values) => {
@@ -207,9 +211,10 @@ export function PractitionersListScreen() {
                   description: values.description || null,
                   requires_license: values.requires_license,
                 });
+                setSheetMode(null);
               }}
             />
-          </SectionCard>
+          </FormSheet>
         ) : null}
         {practitionersQuery.isLoading ? <LoadingState title="Loading practitioners" description="Fetching doctor profiles and assignment coverage." /> : null}
         {practitionersQuery.error ? <ErrorState title="Unable to load practitioners" description={practitionersQuery.error.message} actionLabel="Retry" onAction={() => void practitionersQuery.refetch()} /> : null}

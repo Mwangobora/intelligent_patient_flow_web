@@ -6,11 +6,11 @@ import { useMemo, useState } from "react";
 import { EmptyState } from "@/components/common/empty-state";
 import { ErrorState } from "@/components/common/error-state";
 import { LoadingState } from "@/components/common/loading-state";
-import { SectionCard } from "@/components/common/section-card";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { ResponsiveActionBar } from "@/components/layout/responsive-action-bar";
 import { ResponsivePageShell } from "@/components/layout/responsive-page-shell";
+import { FormSheet } from "@/components/overlays/form-sheet";
 import { Button } from "@/components/ui/button";
 import { useDebouncedValue } from "@/features/appointments/hooks/use-debounced-value";
 
@@ -57,12 +57,12 @@ export function AuditLogsScreen() {
         filters={<AuditFilterPanel filters={filters} onChange={(next) => { setFilters(next); setPage(1); }} />}
       >
         {showCreate ? (
-          <SectionCard title="Create manual audit log" description="Admin-only append-only event creation. No edit or delete workflow exists.">
+          <FormSheet open={showCreate} title="Create manual audit log" description="Admin-only append-only event creation. No edit or delete workflow exists." onOpenChange={setShowCreate}>
             <AuditCreateForm isSubmitting={createMutation.isPending} onSubmit={async (payload) => {
               await createMutation.mutateAsync(payload);
               setShowCreate(false);
             }} />
-          </SectionCard>
+          </FormSheet>
         ) : null}
         {logsQuery.isLoading ? <LoadingState title="Loading audit logs" description="Fetching sanitized audit records." /> : null}
         {logsQuery.error ? (

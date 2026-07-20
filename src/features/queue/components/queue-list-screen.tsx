@@ -9,12 +9,12 @@ import { EmptyState } from "@/components/common/empty-state";
 import { ErrorState } from "@/components/common/error-state";
 import { LoadingState } from "@/components/common/loading-state";
 import { ScopeNotice } from "@/components/common/scope-notice";
-import { SectionCard } from "@/components/common/section-card";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { ResponsiveActionBar } from "@/components/layout/responsive-action-bar";
 import { ResponsiveFilterPanel } from "@/components/layout/responsive-filter-panel";
 import { ResponsivePageShell } from "@/components/layout/responsive-page-shell";
+import { FormSheet } from "@/components/overlays/form-sheet";
 import { SelectField } from "@/components/forms/select-field";
 import { TextInputField } from "@/components/forms/text-input-field";
 import { Button } from "@/components/ui/button";
@@ -37,6 +37,7 @@ const today = format(new Date(), "yyyy-MM-dd");
 
 export function QueueListScreen() {
   const workspace = useQueueWorkspace();
+  const [showCreateQueue, setShowCreateQueue] = useState(false);
   const [filters, setFilters] = useState({
     queue_date: today,
     status: "" as QueueStatus | "",
@@ -114,6 +115,7 @@ export function QueueListScreen() {
         actions={
           <ResponsiveActionBar>
             <Link href="/queue/service-desk"><Button><ListOrdered className="mr-2 h-4 w-4" />Service desk</Button></Link>
+            {workspace.canManageQueues && hasFacilityScope ? <Button onClick={() => setShowCreateQueue(true)}>Create queue</Button> : null}
             <Link href="/queue/display"><Button variant="secondary"><MonitorPlay className="mr-2 h-4 w-4" />Display</Button></Link>
             <Button variant="secondary" onClick={() => void Promise.all([queuesQuery.refetch(), entriesQuery.refetch()])} disabled={!hasFacilityScope}>
               <RefreshCw className="mr-2 h-4 w-4" />Refresh
@@ -170,7 +172,7 @@ export function QueueListScreen() {
         ) : null}
 
         {workspace.canManageQueues && hasFacilityScope ? (
-          <SectionCard title="Create queue" description="Open a new general or specialty queue for the selected service point.">
+          <FormSheet open={showCreateQueue} title="Create queue" description="Open a new general or specialty queue for the selected service point." onOpenChange={setShowCreateQueue}>
             <QueueCreateForm
               servicePoints={servicePointsQuery.data ?? []}
               specialties={specialtiesQuery.data ?? []}
@@ -178,9 +180,10 @@ export function QueueListScreen() {
               isSubmitting={createQueueMutation.isPending}
               onSubmit={async (payload) => {
                 await createQueueMutation.mutateAsync(payload);
+                setShowCreateQueue(false);
               }}
             />
-          </SectionCard>
+          </FormSheet>
         ) : null}
 
         <QueueOverviewCards

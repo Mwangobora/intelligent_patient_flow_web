@@ -1,11 +1,16 @@
 "use client";
 
+import { useState } from "react";
+
 import { ErrorState } from "@/components/common/error-state";
 import { LoadingState } from "@/components/common/loading-state";
 import { SectionCard } from "@/components/common/section-card";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
+import { ResponsiveActionBar } from "@/components/layout/responsive-action-bar";
 import { ResponsivePageShell } from "@/components/layout/responsive-page-shell";
+import { FormSheet } from "@/components/overlays/form-sheet";
+import { Button } from "@/components/ui/button";
 
 import { useCreateFacilitySpecialtyMutation, useCreateSpecialtyMutation } from "../hooks/use-facility-mutations";
 import { useDepartmentsQuery, useFacilityQuery, useFacilitySpecialtiesQuery, useSpecialtiesQuery } from "../hooks/use-facility-queries";
@@ -18,6 +23,7 @@ import { FacilitySpecialtyForm, SpecialtyForm } from "./specialty-forms";
 
 export function FacilitySpecialtiesScreen({ facilityId }: { facilityId: string }) {
   const workspace = useFacilityWorkspace();
+  const [sheetMode, setSheetMode] = useState<"specialty" | "facility-specialty" | null>(null);
   const facilityQuery = useFacilityQuery(facilityId, { enabled: workspace.canViewFacilities });
   const specialtiesQuery = useSpecialtiesQuery({}, { enabled: workspace.canManageSpecialties });
   const departmentsQuery = useDepartmentsQuery({ facility_id: facilityId, is_active: true }, { enabled: workspace.canManageSpecialties });
@@ -30,19 +36,22 @@ export function FacilitySpecialtiesScreen({ facilityId }: { facilityId: string }
 
   return (
     <PageContainer>
-      <ResponsivePageShell header={<><FacilityPageTabs activeTab="specialties" facilityId={facilityId} /><PageHeader title="Specialties" description={facilityQuery.data?.name ?? "Facility specialties"} /></>}>
-        <div className="grid gap-4 xl:grid-cols-2">
-          <SectionCard title="Create global specialty" description="Creates a specialty from the backend /facilities/specialties/ endpoint.">
+      <ResponsivePageShell
+        header={<><FacilityPageTabs activeTab="specialties" facilityId={facilityId} /><PageHeader title="Specialties" description={facilityQuery.data?.name ?? "Facility specialties"} /></>}
+        actions={<ResponsiveActionBar><Button variant="secondary" onClick={() => setSheetMode("specialty")}>Create specialty</Button><Button onClick={() => setSheetMode("facility-specialty")}>Attach specialty</Button></ResponsiveActionBar>}
+      >
+          <FormSheet open={sheetMode === "specialty"} title="Create global specialty" description="Creates a specialty from the backend /facilities/specialties/ endpoint." onOpenChange={(open) => setSheetMode(open ? "specialty" : null)}>
             <SpecialtyForm specialties={specialtiesQuery.data ?? []} isSubmitting={createSpecialty.isPending} onSubmit={async (payload) => {
               await createSpecialty.mutateAsync(payload);
+              setSheetMode(null);
             }} />
-          </SectionCard>
-          <SectionCard title="Attach specialty to facility" description="Department must belong to the current facility.">
+          </FormSheet>
+          <FormSheet open={sheetMode === "facility-specialty"} title="Attach specialty to facility" description="Department must belong to the current facility." onOpenChange={(open) => setSheetMode(open ? "facility-specialty" : null)}>
             <FacilitySpecialtyForm departments={departmentsQuery.data ?? []} specialties={specialtiesQuery.data ?? []} isSubmitting={createFacilitySpecialty.isPending} onSubmit={async (payload) => {
               await createFacilitySpecialty.mutateAsync({ ...payload, facility_id: facilityId });
+              setSheetMode(null);
             }} />
-          </SectionCard>
-        </div>
+          </FormSheet>
         {facilitySpecialtiesQuery.error ? <ErrorState title="Unable to load facility specialties" description={facilitySpecialtiesQuery.error.message} /> : null}
         {facilitySpecialtiesQuery.isLoading ? <LoadingState title="Loading facility specialties" description="Fetching assignments." /> : (
           <FacilityResourceTable<FacilitySpecialtyRecord>

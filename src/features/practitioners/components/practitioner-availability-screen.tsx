@@ -9,6 +9,7 @@ import { SectionCard } from "@/components/common/section-card";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { ResponsiveFilterPanel } from "@/components/layout/responsive-filter-panel";
+import { FormSheet } from "@/components/overlays/form-sheet";
 import { SelectField } from "@/components/forms/select-field";
 import { Button } from "@/components/ui/button";
 
@@ -24,6 +25,7 @@ import type { AvailabilityPeriodRecord } from "../types/practitioner.types";
 export function PractitionerAvailabilityScreen() {
   const workspace = usePractitionerWorkspace();
   const [dayOfWeek, setDayOfWeek] = useState("");
+  const [showCreate, setShowCreate] = useState(false);
   const [deactivateTarget, setDeactivateTarget] = useState<AvailabilityPeriodRecord | null>(null);
   const assignmentsQuery = usePractitionerFacilityAssignmentsQuery({ organization_id: workspace.activeMembership?.organization, facility_id: workspace.activeMembership?.facility || undefined, is_active: true }, { enabled: workspace.canManageAvailability && Boolean(workspace.activeMembership?.organization) });
   const availabilityQuery = usePractitionerAvailabilityQuery({ facility_id: workspace.activeMembership?.facility || undefined, day_of_week: dayOfWeek ? Number(dayOfWeek) : undefined, is_active: true }, { enabled: workspace.canManageAvailability && Boolean(workspace.activeMembership?.facility) });
@@ -42,13 +44,13 @@ export function PractitionerAvailabilityScreen() {
     <PageContainer className="space-y-6">
       <PractitionerConfirmDialog open={Boolean(deactivateTarget)} title="Deactivate availability?" description="This removes the availability period from active scheduling without deleting its history." confirmLabel="Deactivate availability" isSubmitting={deactivateMutation.isPending} onClose={() => setDeactivateTarget(null)} onConfirm={async () => { if (!deactivateTarget) return; await deactivateMutation.mutateAsync({ id: deactivateTarget.id }); setDeactivateTarget(null); }} />
       <PractitionerPageTabs activeTab="availability" />
-      <PageHeader title="Practitioner availability" description="Create weekly availability windows and review active booking availability." />
+      <PageHeader title="Practitioner availability" description="Create weekly availability windows and review active booking availability." actions={<Button onClick={() => setShowCreate(true)}>Create availability</Button>} />
       <ResponsiveFilterPanel title="Availability filters" description="Filter the active list by day of week.">
         <div className="grid gap-4 md:grid-cols-3">
           <SelectField label="Day of week" value={dayOfWeek} onChange={(event) => setDayOfWeek(event.target.value)} options={[{ label: "All days", value: "" }, { label: "Monday", value: "1" }, { label: "Tuesday", value: "2" }, { label: "Wednesday", value: "3" }, { label: "Thursday", value: "4" }, { label: "Friday", value: "5" }, { label: "Saturday", value: "6" }, { label: "Sunday", value: "7" }]} />
         </div>
       </ResponsiveFilterPanel>
-      <SectionCard title="Create availability period" description="Create weekly operational availability used for practitioner scheduling and appointments.">
+      <FormSheet open={showCreate} title="Create availability period" description="Create weekly operational availability used for practitioner scheduling and appointments." onOpenChange={setShowCreate}>
         <PractitionerAvailabilityForm
           assignments={assignmentsQuery.data ?? []}
           isSubmitting={createMutation.isPending}
@@ -62,9 +64,10 @@ export function PractitionerAvailabilityScreen() {
               valid_until: values.valid_until || null,
               is_available_for_appointments: values.is_available_for_appointments ?? true,
             });
+            setShowCreate(false);
           }}
         />
-      </SectionCard>
+      </FormSheet>
       {availabilityQuery.isLoading ? <LoadingState title="Loading availability" description="Fetching active weekly availability periods." /> : null}
       {availabilityQuery.error ? <ErrorState title="Unable to load availability" description={availabilityQuery.error.message} actionLabel="Retry" onAction={() => void availabilityQuery.refetch()} /> : null}
       {!availabilityQuery.isLoading && !availabilityQuery.error && !grouped.length ? <EmptyState title="No availability found" description="Create an availability period or adjust the day filter." /> : null}

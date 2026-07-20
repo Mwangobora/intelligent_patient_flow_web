@@ -10,6 +10,7 @@ import { SectionCard } from "@/components/common/section-card";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { ResponsiveFilterPanel } from "@/components/layout/responsive-filter-panel";
+import { FormSheet } from "@/components/overlays/form-sheet";
 import { SelectField } from "@/components/forms/select-field";
 import { TextInputField } from "@/components/forms/text-input-field";
 import { Button } from "@/components/ui/button";
@@ -41,6 +42,7 @@ export function PractitionerShiftsScreen() {
   const workspace = usePractitionerWorkspace();
   const [filters, setFilters] = useState<{ status: ShiftStatus | ""; starts_from: string; ends_to: string; service_point_id: string }>({ status: "", starts_from: today, ends_to: today, service_point_id: "" });
   const [cancelTargetId, setCancelTargetId] = useState<string | null>(null);
+  const [showCreate, setShowCreate] = useState(false);
   const assignmentsQuery = usePractitionerFacilityAssignmentsQuery({ organization_id: workspace.activeMembership?.organization, facility_id: workspace.activeMembership?.facility || undefined, is_active: true }, { enabled: workspace.canManageShifts && Boolean(workspace.activeMembership?.organization) });
   const departmentAssignmentsQuery = usePractitionerDepartmentAssignmentsQuery({ organization_id: workspace.activeMembership?.organization, facility_id: workspace.activeMembership?.facility || undefined, is_active: true }, { enabled: workspace.canManageShifts && Boolean(workspace.activeMembership?.organization) });
   const servicePointsQuery = useServicePointsLookupQuery({ facility_id: workspace.activeMembership?.facility || undefined, is_active: true }, { enabled: Boolean(workspace.activeMembership?.facility) });
@@ -60,7 +62,7 @@ export function PractitionerShiftsScreen() {
     <PageContainer className="space-y-6">
       <PractitionerConfirmDialog open={Boolean(cancelTarget)} title="Cancel shift?" description="This records the cancellation and keeps the shift history." confirmLabel="Cancel shift" requireReason reasonLabel="Cancellation reason" isSubmitting={cancelShiftMutation.isPending} onClose={() => setCancelTargetId(null)} onConfirm={async (reason) => { if (!cancelTarget) return; await cancelShiftMutation.mutateAsync({ id: cancelTarget.id, payload: { cancellation_reason: reason ?? "" } }); setCancelTargetId(null); }} />
       <PractitionerPageTabs activeTab="shifts" />
-      <PageHeader title="Practitioner shifts" description="Create, start, complete, and cancel practitioner shifts without leaving the staff dashboard." />
+      <PageHeader title="Practitioner shifts" description="Create, start, complete, and cancel practitioner shifts without leaving the staff dashboard." actions={<Button onClick={() => setShowCreate(true)}>Create shift</Button>} />
       <ResponsiveFilterPanel title="Shift filters" description="Filter by status, day range, and service point.">
         <div className="grid gap-4 lg:grid-cols-4">
           <TextInputField label="Starts from" type="date" value={filters.starts_from} onChange={(event) => setFilters((current) => ({ ...current, starts_from: event.target.value }))} />
@@ -69,7 +71,7 @@ export function PractitionerShiftsScreen() {
           <SelectField label="Service point" value={filters.service_point_id} onChange={(event) => setFilters((current) => ({ ...current, service_point_id: event.target.value }))} options={[{ label: "All service points", value: "" }, ...(servicePointsQuery.data ?? []).map((item) => ({ label: item.name, value: item.id }))]} />
         </div>
       </ResponsiveFilterPanel>
-      <SectionCard title="Create shift" description="Assign a practitioner to a staffed operational shift.">
+      <FormSheet open={showCreate} title="Create shift" description="Assign a practitioner to a staffed operational shift." onOpenChange={setShowCreate}>
         <PractitionerShiftForm
           assignments={assignmentsQuery.data ?? []}
           departmentAssignments={departmentAssignmentsQuery.data ?? []}
@@ -87,9 +89,10 @@ export function PractitionerShiftsScreen() {
               accepts_appointments: values.accepts_appointments ?? true,
               notes: values.notes || null,
             });
+            setShowCreate(false);
           }}
         />
-      </SectionCard>
+      </FormSheet>
       {shiftsQuery.isLoading ? <LoadingState title="Loading shifts" description="Fetching scheduled and active shifts." /> : null}
       {shiftsQuery.error ? <ErrorState title="Unable to load shifts" description={shiftsQuery.error.message} actionLabel="Retry" onAction={() => void shiftsQuery.refetch()} /> : null}
       {!shiftsQuery.isLoading && !shiftsQuery.error && !(shiftsQuery.data ?? []).length ? <EmptyState title="No shifts found" description="Create a shift or adjust the filters." /> : null}

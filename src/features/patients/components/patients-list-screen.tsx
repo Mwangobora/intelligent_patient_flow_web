@@ -13,6 +13,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { ResponsiveActionBar } from "@/components/layout/responsive-action-bar";
 import { ResponsiveFilterPanel } from "@/components/layout/responsive-filter-panel";
 import { ResponsivePageShell } from "@/components/layout/responsive-page-shell";
+import { ConfirmDialog } from "@/components/overlays/confirm-dialog";
 import { SelectField } from "@/components/forms/select-field";
 import { TextInputField } from "@/components/forms/text-input-field";
 import { Button } from "@/components/ui/button";
@@ -25,9 +26,11 @@ import { usePatientWorkspace } from "../hooks/use-patient-workspace";
 import { PatientMobileCard } from "./patient-mobile-card";
 import { PatientPageTabs } from "./patient-page-tabs";
 import { PatientsTable } from "./patients-table";
+import type { PatientRecord } from "../types/patient.types";
 
 export function PatientsListScreen() {
   const workspace = usePatientWorkspace();
+  const [deactivateTarget, setDeactivateTarget] = useState<PatientRecord | null>(null);
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebouncedValue(search);
   const [filters, setFilters] = useState({
@@ -137,6 +140,19 @@ export function PatientsListScreen() {
           />
         ) : null}
         {patientsQuery.isLoading ? <LoadingState title="Loading patients" description="Fetching patient records from the backend." /> : null}
+        <ConfirmDialog
+          open={Boolean(deactivateTarget)}
+          title={`Deactivate ${deactivateTarget?.patient_number ?? "patient"}?`}
+          description="This marks the patient inactive without deleting the record."
+          confirmLabel="Deactivate patient"
+          isSubmitting={deactivateMutation.isPending}
+          onClose={() => setDeactivateTarget(null)}
+          onConfirm={async () => {
+            if (!deactivateTarget) return;
+            await deactivateMutation.mutateAsync(deactivateTarget.id);
+            setDeactivateTarget(null);
+          }}
+        />
         {patientsQuery.error ? (
           <ErrorState
             title="Unable to load patients"
@@ -151,10 +167,7 @@ export function PatientsListScreen() {
               patients={patientsQuery.data ?? []}
               canUpdate={workspace.canUpdatePatients}
               canDeactivate={workspace.canDeactivatePatients}
-              onDeactivate={async (patient) => {
-                if (!window.confirm(`Deactivate ${patient.patient_number}?`)) return;
-                await deactivateMutation.mutateAsync(patient.id);
-              }}
+              onDeactivate={setDeactivateTarget}
             />
             <div className="space-y-4 md:hidden">
               {(patientsQuery.data ?? []).length ? (
@@ -165,8 +178,7 @@ export function PatientsListScreen() {
                     canUpdate={workspace.canUpdatePatients}
                     canDeactivate={workspace.canDeactivatePatients}
                     onDeactivate={async (target) => {
-                      if (!window.confirm(`Deactivate ${target.patient_number}?`)) return;
-                      await deactivateMutation.mutateAsync(target.id);
+                      setDeactivateTarget(target);
                     }}
                   />
                 ))

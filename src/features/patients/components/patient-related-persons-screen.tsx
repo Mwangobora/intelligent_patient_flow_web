@@ -8,6 +8,7 @@ import { LoadingState } from "@/components/common/loading-state";
 import { SectionCard } from "@/components/common/section-card";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
+import { FormSheet } from "@/components/overlays/form-sheet";
 import { Button } from "@/components/ui/button";
 
 import {
@@ -35,6 +36,7 @@ export function PatientRelatedPersonsScreen({ patientId }: { patientId: string }
   const workspace = usePatientWorkspace();
   const [editingRelatedPersonId, setEditingRelatedPersonId] = useState<string | null>(null);
   const [expandedContactFormId, setExpandedContactFormId] = useState<string | null>(null);
+  const [showAddRelatedPerson, setShowAddRelatedPerson] = useState(false);
   const patientQuery = usePatientDetailQuery(patientId, { enabled: workspace.canViewPatients });
   const relatedPersonsQuery = usePatientRelatedPersonsQuery({ patient_id: patientId }, { enabled: workspace.canViewPatients });
   const contactsQuery = useRelatedPersonContactsQuery({ patient_id: patientId }, { enabled: workspace.canViewPatients });
@@ -71,9 +73,10 @@ export function PatientRelatedPersonsScreen({ patientId }: { patientId: string }
       <PageHeader
         title={`${formatPatientRecordName(patientQuery.data)} Related Persons`}
         description="Manage guardians, emergency contacts, and safe contact channels. Related-person contacts support add, verify, set primary, and deactivate actions."
+        actions={workspace.canManageRelatedPersons ? <Button onClick={() => setShowAddRelatedPerson(true)}>Add related person</Button> : null}
       />
       {workspace.canManageRelatedPersons ? (
-        <SectionCard title="Add related person" description="Create a guardian, caregiver, next-of-kin, or emergency contact record.">
+        <FormSheet open={showAddRelatedPerson} title="Add related person" description="Create a guardian, caregiver, next-of-kin, or emergency contact record." onOpenChange={setShowAddRelatedPerson}>
           <RelatedPersonForm
             relationshipTypes={relationshipTypesQuery.data ?? []}
             isSubmitting={createRelatedPersonMutation.isPending}
@@ -89,9 +92,10 @@ export function PatientRelatedPersonsScreen({ patientId }: { patientId: string }
                 is_emergency_contact: values.is_emergency_contact,
                 priority_order: Number(values.priority_order),
               });
+              setShowAddRelatedPerson(false);
             }}
           />
-        </SectionCard>
+        </FormSheet>
       ) : null}
       <SectionCard title="Related persons" description="Safe summaries only. Sensitive contact values remain encrypted and are never exposed directly.">
         <div className="space-y-4">
@@ -108,9 +112,7 @@ export function PatientRelatedPersonsScreen({ patientId }: { patientId: string }
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {workspace.canManageRelatedPersons ? (
-                    <Button variant="secondary" onClick={() => setEditingRelatedPersonId((current) => current === person.id ? null : person.id)}>
-                      {editingRelatedPersonId === person.id ? "Hide edit" : "Edit"}
-                    </Button>
+                    <Button variant="secondary" onClick={() => setEditingRelatedPersonId(person.id)}>Edit</Button>
                   ) : null}
                   {workspace.canManageRelatedPersons && person.is_active ? (
                     <Button variant="danger" onClick={() => void deactivateRelatedPersonMutation.mutateAsync(person.id)}>
@@ -121,7 +123,7 @@ export function PatientRelatedPersonsScreen({ patientId }: { patientId: string }
               </div>
 
               {editingRelatedPersonId === person.id ? (
-                <div className="mt-4">
+                <FormSheet open={editingRelatedPersonId === person.id} title="Edit related person" description="Update safe related-person metadata." onOpenChange={(open) => !open && setEditingRelatedPersonId(null)}>
                   <RelatedPersonForm
                     relationshipTypes={relationshipTypesQuery.data ?? []}
                     initialValues={{
@@ -155,16 +157,14 @@ export function PatientRelatedPersonsScreen({ patientId }: { patientId: string }
                       setEditingRelatedPersonId(null);
                     }}
                   />
-                </div>
+                </FormSheet>
               ) : null}
 
               <div className="mt-4 space-y-3">
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-sm font-semibold text-foreground">Contacts</p>
                   {workspace.canManageRelatedPersonContacts ? (
-                    <Button variant="secondary" onClick={() => setExpandedContactFormId((current) => current === person.id ? null : person.id)}>
-                      {expandedContactFormId === person.id ? "Hide contact form" : "Add contact"}
-                    </Button>
+                    <Button variant="secondary" onClick={() => setExpandedContactFormId(person.id)}>Add contact</Button>
                   ) : null}
                 </div>
 
@@ -185,12 +185,15 @@ export function PatientRelatedPersonsScreen({ patientId }: { patientId: string }
                 ))}
 
                 {expandedContactFormId === person.id ? (
+                  <FormSheet open={expandedContactFormId === person.id} title="Add related person contact" description="Contact value is stored securely by backend services." onOpenChange={(open) => !open && setExpandedContactFormId(null)}>
                   <RelatedPersonContactForm
                     isSubmitting={createContactMutation.isPending}
                     onSubmit={async (values) => {
                       await createContactMutation.mutateAsync({ relatedPersonId: person.id, payload: values });
+                      setExpandedContactFormId(null);
                     }}
                   />
+                  </FormSheet>
                 ) : null}
               </div>
             </div>

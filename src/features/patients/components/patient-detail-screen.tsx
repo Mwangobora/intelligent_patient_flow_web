@@ -10,6 +10,7 @@ import { SectionCard } from "@/components/common/section-card";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { ResponsiveActionBar } from "@/components/layout/responsive-action-bar";
+import { FormSheet } from "@/components/overlays/form-sheet";
 import { Button } from "@/components/ui/button";
 import { useAppointmentsQuery } from "@/features/appointments/hooks/use-appointment-queries";
 import { useCheckinsQuery } from "@/features/checkins/hooks/use-checkin-queries";
@@ -42,6 +43,7 @@ import { PatientStatusBadge } from "./patient-status-badge";
 export function PatientDetailScreen({ patientId }: { patientId: string }) {
   const workspace = usePatientWorkspace();
   const [editingAddressId, setEditingAddressId] = useState<string | null>(null);
+  const [showAddAddress, setShowAddAddress] = useState(false);
   const patientQuery = usePatientDetailQuery(patientId, { enabled: workspace.canViewPatients });
   const identifiersQuery = usePatientIdentifiersQuery({ patient_id: patientId, is_active: true }, { enabled: workspace.canViewPatients });
   const addressesQuery = usePatientAddressesQuery({ patient_id: patientId }, { enabled: workspace.canViewPatients });
@@ -79,6 +81,7 @@ export function PatientDetailScreen({ patientId }: { patientId: string }) {
       <ResponsiveActionBar>
         <Link href="/patients"><Button variant="secondary">Back to patients</Button></Link>
         {workspace.canUpdatePatients ? <Link href={`/patients/${patientId}/edit`}><Button>Edit patient</Button></Link> : null}
+        {workspace.canManageAddresses ? <Button variant="secondary" onClick={() => setShowAddAddress(true)}>Add address</Button> : null}
       </ResponsiveActionBar>
 
       <SectionCard title="Patient summary" description="Safe demographic and registration fields only.">
@@ -167,14 +170,12 @@ export function PatientDetailScreen({ patientId }: { patientId: string }) {
                     </Button>
                   ) : null}
                   {workspace.canManageAddresses ? (
-                    <Button variant="secondary" onClick={() => setEditingAddressId((current) => current === address.id ? null : address.id)}>
-                      {editingAddressId === address.id ? "Hide edit" : "Edit"}
-                    </Button>
+                    <Button variant="secondary" onClick={() => setEditingAddressId(address.id)}>Edit</Button>
                   ) : null}
                 </div>
               </div>
               {editingAddressId === address.id ? (
-                <div className="mt-4">
+                <FormSheet open={editingAddressId === address.id} title="Edit address" description="Update safe address metadata. Sensitive address fields remain encrypted by backend services." onOpenChange={(open) => !open && setEditingAddressId(null)}>
                   <PatientAddressForm
                     isSubmitting={updateAddressMutation.isPending}
                     submitLabel="Update address"
@@ -192,18 +193,21 @@ export function PatientDetailScreen({ patientId }: { patientId: string }) {
                       setEditingAddressId(null);
                     }}
                   />
-                </div>
+                </FormSheet>
               ) : null}
             </div>
           ))}
           {workspace.canManageAddresses ? (
+            <FormSheet open={showAddAddress} title="Add address" description="Create a new patient address without scrolling away from the profile." onOpenChange={setShowAddAddress}>
             <PatientAddressForm
               isSubmitting={createAddressMutation.isPending}
               submitLabel="Add address"
               onSubmit={async (values) => {
                 await createAddressMutation.mutateAsync(values);
+                setShowAddAddress(false);
               }}
             />
+            </FormSheet>
           ) : null}
         </div>
       </SectionCard>

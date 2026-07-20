@@ -10,6 +10,7 @@ import { SectionCard } from "@/components/common/section-card";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { ResponsiveActionBar } from "@/components/layout/responsive-action-bar";
+import { FormSheet } from "@/components/overlays/form-sheet";
 import { Button } from "@/components/ui/button";
 
 import {
@@ -61,6 +62,8 @@ export function PractitionerDetailScreen({ practitionerId }: PractitionerDetailS
   const setPrimarySpecialtyMutation = useSetPrimarySpecialtyAssignmentMutation();
   const deactivateFacilityMutation = useDeactivateFacilityAssignmentMutation();
   const [expandedAssignmentId, setExpandedAssignmentId] = useState<string | null>(null);
+  const [showEditProfile, setShowEditProfile] = useState(false);
+  const [showFacilityAssignment, setShowFacilityAssignment] = useState(false);
 
   const assignmentFacilityId = useMemo(
     () => facilityAssignmentsQuery.data?.find((assignment) => assignment.id === expandedAssignmentId)?.facility,
@@ -83,6 +86,8 @@ export function PractitionerDetailScreen({ practitionerId }: PractitionerDetailS
       <ResponsiveActionBar>
         <Link href="/practitioners"><Button variant="secondary">Back to practitioners</Button></Link>
         <Link href={`/practitioners/${practitionerId}/schedule`}><Button>View schedule</Button></Link>
+        {workspace.canUpdatePractitioners ? <Button variant="secondary" onClick={() => setShowEditProfile(true)}>Edit profile</Button> : null}
+        {workspace.canManageAssignments ? <Button variant="secondary" onClick={() => setShowFacilityAssignment(true)}>Add facility assignment</Button> : null}
       </ResponsiveActionBar>
 
       <SectionCard title="Profile summary" description="Safe practitioner information used by staff scheduling workflows.">
@@ -95,7 +100,7 @@ export function PractitionerDetailScreen({ practitionerId }: PractitionerDetailS
       </SectionCard>
 
       {workspace.canUpdatePractitioners ? (
-        <SectionCard title="Update profile" description="Keep the practitioner profile current without reloading the page.">
+        <FormSheet open={showEditProfile} title="Update profile" description="Keep the practitioner profile current without reloading the page." onOpenChange={setShowEditProfile}>
           <PractitionerForm
             organizationId={practitioner.organization}
             practitionerTypes={practitionerTypesQuery.data ?? []}
@@ -117,13 +122,14 @@ export function PractitionerDetailScreen({ practitionerId }: PractitionerDetailS
                   phone_number: values.phone_number || null,
                 },
               });
+              setShowEditProfile(false);
             }}
           />
-        </SectionCard>
+        </FormSheet>
       ) : null}
 
       {workspace.canManageAssignments ? (
-        <SectionCard title="Add facility assignment" description="Link this practitioner to an active facility before creating department or specialty assignments.">
+        <FormSheet open={showFacilityAssignment} title="Add facility assignment" description="Link this practitioner to an active facility before creating department or specialty assignments." onOpenChange={setShowFacilityAssignment}>
           <PractitionerFacilityAssignmentForm
             facilities={facilitiesQuery.data ?? []}
             isSubmitting={createFacilityAssignmentMutation.isPending}
@@ -137,9 +143,10 @@ export function PractitionerDetailScreen({ practitionerId }: PractitionerDetailS
                   is_primary: values.is_primary,
                 },
               });
+              setShowFacilityAssignment(false);
             }}
           />
-        </SectionCard>
+        </FormSheet>
       ) : null}
 
       <SectionCard title="Facility assignments" description="Primary and active facility coverage for this practitioner.">
@@ -153,13 +160,16 @@ export function PractitionerDetailScreen({ practitionerId }: PractitionerDetailS
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {!assignment.is_primary ? <Button variant="secondary" onClick={() => void setPrimaryFacilityMutation.mutateAsync({ id: assignment.id })}>Set primary</Button> : null}
-                  <Button variant="secondary" onClick={() => setExpandedAssignmentId((current) => current === assignment.id ? null : assignment.id)}>{expandedAssignmentId === assignment.id ? "Hide assignment tools" : "Manage assignment"}</Button>
+                  <Button variant="secondary" onClick={() => setExpandedAssignmentId(assignment.id)}>Manage assignment</Button>
                   <Button variant="danger" onClick={() => void deactivateFacilityMutation.mutateAsync({ id: assignment.id })}>Deactivate</Button>
                 </div>
               </div>
               {expandedAssignmentId === assignment.id ? (
-                <div className="mt-4 grid gap-4 xl:grid-cols-2">
-                  <SectionCard title="Add department assignment" description="Attach a department that belongs to the same facility.">
+                <FormSheet open={expandedAssignmentId === assignment.id} title="Manage assignment" description={`Add department or specialty assignments for ${assignment.facility_name}.`} onOpenChange={(open) => !open && setExpandedAssignmentId(null)}>
+                  <div className="grid gap-6">
+                    <section className="rounded-xl border border-border p-4">
+                      <h3 className="font-semibold text-foreground">Add department assignment</h3>
+                      <p className="mb-4 text-sm text-muted-foreground">Attach a department that belongs to the same facility.</p>
                     <PractitionerDepartmentAssignmentForm
                       departments={departmentsLookup.data ?? []}
                       isSubmitting={createDepartmentAssignmentMutation.isPending}
@@ -173,10 +183,13 @@ export function PractitionerDetailScreen({ practitionerId }: PractitionerDetailS
                             is_primary: values.is_primary,
                           },
                         });
+                        setExpandedAssignmentId(null);
                       }}
                     />
-                  </SectionCard>
-                  <SectionCard title="Add specialty assignment" description="Attach a facility specialty that belongs to the same facility and department scope.">
+                    </section>
+                    <section className="rounded-xl border border-border p-4">
+                      <h3 className="font-semibold text-foreground">Add specialty assignment</h3>
+                      <p className="mb-4 text-sm text-muted-foreground">Attach a facility specialty that belongs to the same facility and department scope.</p>
                     <PractitionerSpecialtyAssignmentForm
                       specialties={facilitySpecialtiesLookup.data ?? []}
                       isSubmitting={createSpecialtyAssignmentMutation.isPending}
@@ -190,10 +203,12 @@ export function PractitionerDetailScreen({ practitionerId }: PractitionerDetailS
                             is_primary: values.is_primary,
                           },
                         });
+                        setExpandedAssignmentId(null);
                       }}
                     />
-                  </SectionCard>
-                </div>
+                    </section>
+                  </div>
+                </FormSheet>
               ) : null}
             </div>
           ))}

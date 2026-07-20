@@ -46,14 +46,16 @@ export function QueueServiceDeskScreen() {
   const workspace = useQueueWorkspace();
   const [selectedQueueId, setSelectedQueueId] = useState(searchParams.get("queueId") ?? "");
   const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null);
-  const hasFacilityScope = Boolean(workspace.activeMembership?.facility);
+  const hasGlobalAccess = Boolean(workspace.data?.has_global_access || workspace.data?.is_superuser);
+  const hasQueueScope = hasGlobalAccess || Boolean(workspace.activeMembership?.facility);
+  const scopedFacilityId = hasGlobalAccess ? undefined : workspace.activeMembership?.facility ?? undefined;
 
   const queuesQuery = useQueuesQuery(
     {
-      facility_id: workspace.activeMembership?.facility ?? undefined,
+      facility_id: scopedFacilityId,
       queue_date: today,
     },
-    { enabled: workspace.canViewQueues && hasFacilityScope },
+    { enabled: workspace.canViewQueues && hasQueueScope },
   );
   const resolvedQueueId = selectedQueueId || queuesQuery.data?.[0]?.id || "";
   const entriesQuery = useQueueEntriesQuery(
@@ -131,7 +133,7 @@ export function QueueServiceDeskScreen() {
                 value: queue.id,
               })),
             ]}
-            disabled={!hasFacilityScope}
+            disabled={!hasQueueScope}
           />
         </div>
         <Button variant="secondary" onClick={() => void Promise.all([queuesQuery.refetch(), entriesQuery.refetch(), nextEntryQuery.refetch()])} disabled={!resolvedQueueId}>
@@ -139,7 +141,7 @@ export function QueueServiceDeskScreen() {
         </Button>
       </ResponsiveActionBar>
 
-      {!hasFacilityScope ? (
+      {!hasQueueScope ? (
         <ScopeNotice
           title="Facility scope required for service desk"
           description="The service desk works against facility-level queues and checked-in patients. Link this account to a facility membership to continue."

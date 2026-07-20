@@ -135,7 +135,7 @@ export function DashboardScreen() {
   );
 
   const canViewDashboard = hasPermission(currentUser, "reporting_analytics.view");
-  const hasScope = Boolean(currentUser?.has_global_access || filters.organization_id || filters.facility_id);
+  const hasScope = Boolean(currentUser?.has_global_access || currentUser?.is_superuser || filters.organization_id || filters.facility_id);
   const dateError =
     filters.date_from && filters.date_to && filters.date_to < filters.date_from
       ? "Date to must be on or after date from."
@@ -178,13 +178,13 @@ export function DashboardScreen() {
     ]);
   };
 
-  const scopeLabel = currentUser?.has_global_access
+  const scopeLabel = currentUser?.has_global_access || currentUser?.is_superuser
     ? "All organizations dashboard"
     : activeMembership?.facility_name
     ? `${activeMembership.facility_name} facility dashboard`
     : `${activeMembership?.organization_name ?? "Unassigned dashboard scope"}`;
   const facilityPlaceholder =
-    activeMembership?.facility_name ?? (currentUser?.has_global_access ? "All facilities" : "Facility selector will be wired to facilities APIs next.");
+    activeMembership?.facility_name ?? (currentUser?.has_global_access || currentUser?.is_superuser ? "All facilities" : "Facility selector will be wired to facilities APIs next.");
   const isRefreshing = [
     overviewQuery,
     appointmentsQuery,

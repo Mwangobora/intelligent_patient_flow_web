@@ -7,6 +7,13 @@ export const apiEndpoints = {
     me: "/auth/me/",
     changePassword: "/auth/change-password/",
   },
+  accounts: {
+    users: "/accounts/users/",
+    roles: "/accounts/roles/",
+    permissions: "/accounts/permissions/",
+    memberships: "/accounts/memberships/",
+    roleAssignments: "/accounts/role-assignments/",
+  },
   facilities: {
     base: "/facilities",
     organizations: "/facilities/organizations/",

@@ -73,6 +73,9 @@ export const permissionCodes = {
   reportingReportDownload: "reporting_report.download",
   reportingReportCancel: "reporting_report.cancel",
   auditLogView: "audit_log.view",
+  auditLogCreate: "audit_log.create",
+  auditLogExport: "audit_log.export",
+  auditLogSummary: "audit_log.summary",
 } as const;
 
 export type AppPermissionCode =

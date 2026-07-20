@@ -34,6 +34,6 @@ export const navigationItems: NavigationItem[] = [
   { label: "Intelligence", href: "/intelligence", icon: "brain-circuit", requiredPermission: permissionCodes.intelligencePredictionView },
   { label: "Notifications", href: "/notifications", icon: "bell", requiredPermission: permissionCodes.notificationsNotificationView },
   { label: "Reports", href: "/reports", icon: "file-text", requiredPermission: permissionCodes.reportingReportView },
-  { label: "Audit Logs", href: "/audit", icon: "shield-check", requiredPermission: permissionCodes.auditLogView },
+  { label: "Audit Logs", href: "/audit-logs", icon: "shield-check", requiredPermission: permissionCodes.auditLogView },
   { label: "Settings", href: "/settings", icon: "settings", requiredPermission: null },
 ];

@@ -48,5 +48,11 @@ export const apiEndpoints = {
       intelligence: "/reporting/dashboard/intelligence/",
     },
   },
-  audit: { base: "/audit" },
+  audit: {
+    base: "/audit",
+    logs: "/audit/logs/",
+    summary: "/audit/summary/",
+    actors: "/audit/actors/",
+    resources: "/audit/resources/",
+  },
 } as const;

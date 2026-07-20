@@ -1,20 +1,17 @@
 "use client";
 
-import { permissionCodes } from "@/config/permissions.config";
 import { useCurrentUserQuery } from "@/features/auth/hooks/use-auth-queries";
+import { hasPermission } from "@/types/permissions";
 
 export function useAuditWorkspace() {
   const userQuery = useCurrentUserQuery();
-  const permissions = new Set(userQuery.data?.permissions ?? []);
-  const isStaff = Boolean(userQuery.data?.is_staff);
-  const can = (permission: string) =>
-    isStaff || userQuery.data?.permissions === undefined || permissions.has(permission);
+  const can = (permission: string) => hasPermission(userQuery.data, permission);
 
   return {
     ...userQuery,
-    canViewAuditLogs: can(permissionCodes.auditLogView),
-    canCreateAuditLogs: can(permissionCodes.auditLogCreate),
-    canExportAuditLogs: can(permissionCodes.auditLogExport),
-    canViewAuditSummary: can(permissionCodes.auditLogSummary),
+    canViewAuditLogs: can("audit_log.view"),
+    canCreateAuditLogs: can("audit_log.create"),
+    canExportAuditLogs: can("audit_log.export"),
+    canViewAuditSummary: can("audit_log.summary"),
   };
 }

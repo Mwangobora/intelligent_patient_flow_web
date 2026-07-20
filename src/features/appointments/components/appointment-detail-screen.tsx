@@ -12,8 +12,8 @@ import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { ResponsiveActionBar } from "@/components/layout/responsive-action-bar";
 import { Button } from "@/components/ui/button";
-import { permissionCodes } from "@/config/permissions.config";
 import { useCurrentUserQuery } from "@/features/auth/hooks/use-auth-queries";
+import { hasPermission } from "@/types/permissions";
 
 import { useCancelAppointmentMutation } from "../hooks/use-appointment-mutations";
 import { useAppointmentDetailQuery, useAppointmentStatusHistoryQuery, usePatientDetailQuery } from "../hooks/use-appointment-queries";
@@ -36,10 +36,7 @@ export function AppointmentDetailScreen({ appointmentId }: AppointmentDetailScre
   const patientQuery = usePatientDetailQuery(appointmentQuery.data?.patient, { enabled: Boolean(appointmentQuery.data?.patient) });
   const cancelMutation = useCancelAppointmentMutation(appointmentId);
 
-  const canCancel =
-    currentUser?.is_staff ||
-    !currentUser?.permissions ||
-    currentUser.permissions.includes(permissionCodes.schedulingAppointmentCancel);
+  const canCancel = hasPermission(currentUser, "scheduling_appointment.cancel");
 
   if (appointmentQuery.isLoading) {
     return <LoadingState title="Loading appointment" description="Fetching appointment details and status history." />;

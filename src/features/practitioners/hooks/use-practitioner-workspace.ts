@@ -2,8 +2,8 @@
 
 import { useMemo } from "react";
 
-import { permissionCodes } from "@/config/permissions.config";
 import { useCurrentUserQuery } from "@/features/auth/hooks/use-auth-queries";
+import { hasPermission } from "@/types/permissions";
 
 export function usePractitionerWorkspace() {
   const userQuery = useCurrentUserQuery();
@@ -15,27 +15,23 @@ export function usePractitionerWorkspace() {
     [userQuery.data?.memberships],
   );
 
-  const permissions = new Set(userQuery.data?.permissions ?? []);
-  const isStaff = Boolean(userQuery.data?.is_staff);
-  const hasScope = Boolean(activeMembership?.organization || activeMembership?.facility);
-
-  const can = (permission: string) =>
-    isStaff || userQuery.data?.permissions === undefined || permissions.has(permission);
+  const hasScope = Boolean(userQuery.data?.has_global_access || activeMembership?.organization || activeMembership?.facility);
+  const can = (permission: string) => hasPermission(userQuery.data, permission);
 
   return {
     ...userQuery,
     activeMembership,
     hasScope,
-    canViewPractitioners: can(permissionCodes.practitionersPractitionerView),
-    canCreatePractitioners: can(permissionCodes.practitionersPractitionerCreate),
-    canUpdatePractitioners: can(permissionCodes.practitionersPractitionerUpdate),
-    canDeactivatePractitioners: can(permissionCodes.practitionersPractitionerDeactivate),
-    canViewTypes: can(permissionCodes.practitionersTypeView),
-    canManageTypes: can(permissionCodes.practitionersTypeManage),
-    canManageAssignments: can(permissionCodes.practitionersAssignmentManage),
-    canManageAvailability: can(permissionCodes.schedulingAvailabilityManage),
-    canManageShifts: can(permissionCodes.schedulingShiftManage),
-    canManageLeave: can(permissionCodes.schedulingLeaveManage),
-    canManageSlots: can(permissionCodes.schedulingSlotManage),
+    canViewPractitioners: can("practitioners_practitioner.view"),
+    canCreatePractitioners: can("practitioners_practitioner.create"),
+    canUpdatePractitioners: can("practitioners_practitioner.update"),
+    canDeactivatePractitioners: can("practitioners_practitioner.deactivate"),
+    canViewTypes: can("practitioners_type.view"),
+    canManageTypes: can("practitioners_type.manage"),
+    canManageAssignments: can("practitioners_assignment.manage"),
+    canManageAvailability: can("scheduling_availability.manage"),
+    canManageShifts: can("scheduling_shift.manage"),
+    canManageLeave: can("scheduling_leave.manage"),
+    canManageSlots: can("scheduling_slot.manage"),
   };
 }

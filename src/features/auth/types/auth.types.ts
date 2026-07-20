@@ -23,6 +23,8 @@ export type AuthUser = {
   full_name?: string;
   is_active: boolean;
   is_staff?: boolean;
+  is_superuser?: boolean;
+  has_global_access?: boolean;
   email_verified_at?: ISODateTime | null;
   phone_verified_at?: ISODateTime | null;
   date_joined?: ISODateTime;

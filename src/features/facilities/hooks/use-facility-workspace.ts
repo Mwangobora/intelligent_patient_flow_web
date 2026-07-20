@@ -2,8 +2,8 @@
 
 import { useMemo } from "react";
 
-import { permissionCodes } from "@/config/permissions.config";
 import { useCurrentUserQuery } from "@/features/auth/hooks/use-auth-queries";
+import { hasPermission } from "@/types/permissions";
 
 export function useFacilityWorkspace() {
   const userQuery = useCurrentUserQuery();
@@ -14,29 +14,26 @@ export function useFacilityWorkspace() {
     [userQuery.data?.memberships],
   );
 
-  const permissions = new Set(userQuery.data?.permissions ?? []);
-  const isStaff = Boolean(userQuery.data?.is_staff);
-  const hasScope = Boolean(activeMembership?.organization || activeMembership?.facility);
-  const can = (permission: string) =>
-    isStaff || userQuery.data?.permissions === undefined || permissions.has(permission);
+  const hasScope = Boolean(userQuery.data?.has_global_access || activeMembership?.organization || activeMembership?.facility);
+  const can = (permission: string) => hasPermission(userQuery.data, permission);
 
   return {
     ...userQuery,
     activeMembership,
     hasScope,
-    canViewFacilities: can(permissionCodes.facilitiesFacilityView),
-    canCreateFacilities: can(permissionCodes.facilitiesFacilityCreate),
-    canUpdateFacilities: can(permissionCodes.facilitiesFacilityUpdate),
-    canDeactivateFacilities: can(permissionCodes.facilitiesFacilityDeactivate),
-    canViewOrganizations: can(permissionCodes.facilitiesOrganizationView),
-    canCreateOrganizations: can(permissionCodes.facilitiesOrganizationCreate),
-    canViewFacilityTypes: can(permissionCodes.facilitiesFacilityTypeView),
-    canCreateFacilityTypes: can(permissionCodes.facilitiesFacilityTypeCreate),
-    canManageDepartments: can(permissionCodes.facilitiesDepartmentManage),
-    canManageSpecialties: can(permissionCodes.facilitiesSpecialtyManage),
-    canManageServicePoints: can(permissionCodes.facilitiesServicePointManage),
-    canManageRooms: can(permissionCodes.facilitiesRoomManage),
-    canManageSchedule: can(permissionCodes.facilitiesScheduleManage),
-    canManageSettings: can(permissionCodes.facilitiesSettingsManage),
+    canViewFacilities: can("facilities_facility.view"),
+    canCreateFacilities: can("facilities_facility.create"),
+    canUpdateFacilities: can("facilities_facility.update"),
+    canDeactivateFacilities: can("facilities_facility.deactivate"),
+    canViewOrganizations: can("facilities_organization.view"),
+    canCreateOrganizations: can("facilities_organization.create"),
+    canViewFacilityTypes: can("facilities_facility_type.view"),
+    canCreateFacilityTypes: can("facilities_facility_type.create"),
+    canManageDepartments: can("facilities_department.manage"),
+    canManageSpecialties: can("facilities_specialty.manage"),
+    canManageServicePoints: can("facilities_service_point.manage"),
+    canManageRooms: can("facilities_room.manage"),
+    canManageSchedule: can("facilities_schedule.manage"),
+    canManageSettings: can("facilities_settings.manage"),
   };
 }

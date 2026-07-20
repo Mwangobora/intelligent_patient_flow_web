@@ -2,8 +2,8 @@
 
 import { useMemo } from "react";
 
-import { permissionCodes } from "@/config/permissions.config";
 import { useCurrentUserQuery } from "@/features/auth/hooks/use-auth-queries";
+import { hasAnyPermission, hasPermission } from "@/types/permissions";
 
 export function useQueueWorkspace() {
   const userQuery = useCurrentUserQuery();
@@ -15,26 +15,22 @@ export function useQueueWorkspace() {
     [userQuery.data?.memberships],
   );
 
-  const permissions = new Set(userQuery.data?.permissions ?? []);
-  const isStaff = Boolean(userQuery.data?.is_staff);
-  const hasScope = Boolean(activeMembership?.organization || activeMembership?.facility);
-
-  const can = (permission: string) =>
-    isStaff || userQuery.data?.permissions === undefined || permissions.has(permission);
+  const hasScope = Boolean(userQuery.data?.has_global_access || activeMembership?.organization || activeMembership?.facility);
+  const can = (permission: string) => hasPermission(userQuery.data, permission);
 
   return {
     ...userQuery,
     activeMembership,
     hasScope,
-    canViewQueues: can(permissionCodes.queueingQueueView) || can(permissionCodes.queueingEntryView),
-    canManageQueues: can(permissionCodes.queueingQueueManage),
-    canCreateEntries: can(permissionCodes.queueingEntryCreate),
-    canCallEntries: can(permissionCodes.queueingEntryCall),
-    canSkipEntries: can(permissionCodes.queueingEntrySkip),
-    canStartService: can(permissionCodes.queueingEntryStartService),
-    canCompleteService: can(permissionCodes.queueingEntryCompleteService),
-    canCancelEntries: can(permissionCodes.queueingEntryCancel),
-    canTransferEntries: can(permissionCodes.queueingEntryTransfer),
-    canChangePriority: can(permissionCodes.queueingPriorityManage),
+    canViewQueues: hasAnyPermission(userQuery.data, ["queueing_queue.view", "queueing_entry.view"]),
+    canManageQueues: can("queueing_queue.manage"),
+    canCreateEntries: can("queueing_entry.create"),
+    canCallEntries: can("queueing_entry.call"),
+    canSkipEntries: can("queueing_entry.skip"),
+    canStartService: can("queueing_entry.start_service"),
+    canCompleteService: can("queueing_entry.complete_service"),
+    canCancelEntries: can("queueing_entry.cancel"),
+    canTransferEntries: can("queueing_entry.transfer"),
+    canChangePriority: can("queueing_priority.manage"),
   };
 }

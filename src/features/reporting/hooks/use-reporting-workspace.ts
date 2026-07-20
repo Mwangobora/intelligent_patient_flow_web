@@ -2,8 +2,8 @@
 
 import { useMemo } from "react";
 
-import { permissionCodes } from "@/config/permissions.config";
 import { useCurrentUserQuery } from "@/features/auth/hooks/use-auth-queries";
+import { hasPermission } from "@/types/permissions";
 
 export function useReportingWorkspace() {
   const userQuery = useCurrentUserQuery();
@@ -15,18 +15,15 @@ export function useReportingWorkspace() {
     [userQuery.data?.memberships],
   );
 
-  const permissions = new Set(userQuery.data?.permissions ?? []);
-  const isStaff = Boolean(userQuery.data?.is_staff);
-  const can = (permission: string) =>
-    isStaff || userQuery.data?.permissions === undefined || permissions.has(permission);
+  const can = (permission: string) => hasPermission(userQuery.data, permission);
 
   return {
     ...userQuery,
     activeMembership,
-    canViewReports: can(permissionCodes.reportingReportView),
-    canGenerateReports: can(permissionCodes.reportingReportGenerate),
-    canDownloadReports: can(permissionCodes.reportingReportDownload),
-    canCancelReports: can(permissionCodes.reportingReportCancel),
-    canViewAnalytics: can(permissionCodes.reportingAnalyticsView),
+    canViewReports: can("reporting_report.view"),
+    canGenerateReports: can("reporting_report.generate"),
+    canDownloadReports: can("reporting_report.download"),
+    canCancelReports: can("reporting_report.cancel"),
+    canViewAnalytics: can("reporting_analytics.view"),
   };
 }

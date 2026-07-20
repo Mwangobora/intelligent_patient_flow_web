@@ -11,8 +11,8 @@ import { StatusBadge } from "@/components/common/status-badge";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
-import { permissionCodes } from "@/config/permissions.config";
 import { useCurrentUserQuery } from "@/features/auth/hooks/use-auth-queries";
+import { hasPermission } from "@/types/permissions";
 
 import { useAppointmentDashboardQuery, useCheckinDashboardQuery, useDashboardOverviewQuery, useIntelligenceDashboardQuery, usePractitionerDashboardQuery, useQueueDashboardQuery } from "../hooks/use-dashboard-queries";
 import type { DashboardQueryParams } from "../types/dashboard.types";
@@ -134,11 +134,8 @@ export function DashboardScreen() {
     [activeMembership, dateFilters.date_from, dateFilters.date_to],
   );
 
-  const hasPermission =
-    currentUser?.is_staff ||
-    !currentUser?.permissions ||
-    currentUser.permissions.includes(permissionCodes.reportingAnalyticsView);
-  const hasScope = Boolean(filters.organization_id || filters.facility_id);
+  const canViewDashboard = hasPermission(currentUser, "reporting_analytics.view");
+  const hasScope = Boolean(currentUser?.has_global_access || filters.organization_id || filters.facility_id);
   const dateError =
     filters.date_from && filters.date_to && filters.date_to < filters.date_from
       ? "Date to must be on or after date from."
@@ -161,7 +158,7 @@ export function DashboardScreen() {
     );
   }
 
-  if (!hasPermission) {
+  if (!canViewDashboard) {
     return (
       <ErrorState
         title="Dashboard access required"
@@ -181,11 +178,13 @@ export function DashboardScreen() {
     ]);
   };
 
-  const scopeLabel = activeMembership?.facility_name
+  const scopeLabel = currentUser?.has_global_access
+    ? "All organizations dashboard"
+    : activeMembership?.facility_name
     ? `${activeMembership.facility_name} facility dashboard`
     : `${activeMembership?.organization_name ?? "Unassigned dashboard scope"}`;
   const facilityPlaceholder =
-    activeMembership?.facility_name ?? "Facility selector will be wired to facilities APIs next.";
+    activeMembership?.facility_name ?? (currentUser?.has_global_access ? "All facilities" : "Facility selector will be wired to facilities APIs next.");
   const isRefreshing = [
     overviewQuery,
     appointmentsQuery,

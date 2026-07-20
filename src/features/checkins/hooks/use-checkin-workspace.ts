@@ -2,8 +2,8 @@
 
 import { useMemo } from "react";
 
-import { permissionCodes } from "@/config/permissions.config";
 import { useCurrentUserQuery } from "@/features/auth/hooks/use-auth-queries";
+import { hasPermission } from "@/types/permissions";
 
 export function useCheckinWorkspace() {
   const userQuery = useCurrentUserQuery();
@@ -15,18 +15,16 @@ export function useCheckinWorkspace() {
     [userQuery.data?.memberships],
   );
 
-  const permissions = new Set(userQuery.data?.permissions ?? []);
-  const isStaff = Boolean(userQuery.data?.is_staff);
-  const can = (permission: string) => isStaff || userQuery.data?.permissions === undefined || permissions.has(permission);
+  const can = (permission: string) => hasPermission(userQuery.data, permission);
 
   return {
     ...userQuery,
     activeMembership,
-    canViewCheckins: can(permissionCodes.checkinsCheckinView),
-    canCreateCheckins: can(permissionCodes.checkinsCheckinCreate),
-    canVoidCheckins: can(permissionCodes.checkinsCheckinVoid),
-    canIssueTokens: can(permissionCodes.checkinsTokenCreate),
-    canConsumeTokens: can(permissionCodes.checkinsTokenConsume),
-    canRevokeTokens: can(permissionCodes.checkinsTokenRevoke),
+    canViewCheckins: can("checkins_checkin.view"),
+    canCreateCheckins: can("checkins_checkin.create"),
+    canVoidCheckins: can("checkins_checkin.void"),
+    canIssueTokens: can("checkins_token.create"),
+    canConsumeTokens: can("checkins_token.consume"),
+    canRevokeTokens: can("checkins_token.revoke"),
   };
 }

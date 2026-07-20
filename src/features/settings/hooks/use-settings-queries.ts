@@ -5,6 +5,7 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import type { ApiError } from "@/lib/api/api-error";
 import { queryKeys } from "@/lib/query/query-keys";
 import { useCurrentUserQuery } from "@/features/auth/hooks/use-auth-queries";
+import { hasAnyPermission, hasPermission } from "@/types/permissions";
 
 import { settingsApiService } from "../api/settings-api.service";
 import type { SettingsListParams } from "../types/settings.types";
@@ -61,13 +62,11 @@ export function useFlowSettingsQuery(params: { facility_id?: string } = {}, opti
 
 export function useSettingsWorkspace() {
   const userQuery = useCurrentUserQuery();
-  const permissions = new Set(userQuery.data?.permissions ?? []);
-  const isStaff = Boolean(userQuery.data?.is_staff);
-  const can = (permission: string) => isStaff || userQuery.data?.permissions === undefined || permissions.has(permission);
+  const can = (permission: string) => hasPermission(userQuery.data, permission);
 
   return {
     ...userQuery,
-    canManageSettings: can("accounts_user.view") || can("accounts_role.view") || can("facilities_organization.view"),
+    canManageSettings: hasAnyPermission(userQuery.data, ["accounts_user.view", "accounts_role.view", "facilities_organization.view"]),
     canViewUsers: can("accounts_user.view"),
     canCreateUsers: can("accounts_user.create"),
     canUpdateUsers: can("accounts_user.update"),

@@ -17,8 +17,8 @@ import { ResponsivePageShell } from "@/components/layout/responsive-page-shell";
 import { Button } from "@/components/ui/button";
 import { SelectField } from "@/components/forms/select-field";
 import { TextInputField } from "@/components/forms/text-input-field";
-import { permissionCodes } from "@/config/permissions.config";
 import { useCurrentUserQuery } from "@/features/auth/hooks/use-auth-queries";
+import { hasPermission } from "@/types/permissions";
 
 import { useCancelAppointmentMutation } from "../hooks/use-appointment-mutations";
 import { useAppointmentPatientsSummaryQuery, useAppointmentsQuery, useFacilitiesLookupQuery, useFacilitySpecialtiesQuery, usePractitionersLookupQuery } from "../hooks/use-appointment-queries";
@@ -64,11 +64,8 @@ export function AppointmentsListScreen() {
     ends_to: today,
   });
 
-  const hasPermission =
-    currentUser?.is_staff ||
-    !currentUser?.permissions ||
-    currentUser.permissions.includes(permissionCodes.schedulingAppointmentView);
-  const hasScope = Boolean(activeMembership?.organization || activeMembership?.facility);
+  const canViewAppointments = hasPermission(currentUser, "scheduling_appointment.view");
+  const hasScope = Boolean(currentUser?.has_global_access || activeMembership?.organization || activeMembership?.facility);
 
   const facilitiesQuery = useFacilitiesLookupQuery(
     { organization_id: activeMembership?.organization, is_active: true },
@@ -98,7 +95,7 @@ export function AppointmentsListScreen() {
       starts_from: buildDateTimeRange(filters.starts_from),
       ends_to: buildDateTimeRange(filters.ends_to, true),
     },
-    { enabled: hasPermission && hasScope },
+    { enabled: canViewAppointments && hasScope },
   );
 
   const patientSummaryQueries = useAppointmentPatientsSummaryQuery(
@@ -123,7 +120,7 @@ export function AppointmentsListScreen() {
   if (isUserLoading) {
     return <LoadingState title="Loading appointments" description="Preparing the scheduling workspace." />;
   }
-  if (!hasPermission) {
+  if (!canViewAppointments) {
     return <ErrorState title="Appointments access required" description="You do not have permission to view appointment scheduling." />;
   }
 

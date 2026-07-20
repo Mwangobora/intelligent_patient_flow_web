@@ -4,7 +4,9 @@ import { motion } from "motion/react";
 import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 
 import { navigationItems } from "@/config/navigation.config";
+import { useCurrentUserQuery } from "@/features/auth/hooks/use-auth-queries";
 import { useUiStore } from "@/stores/use-ui-store";
+import { hasPermission } from "@/types/permissions";
 
 import { SidebarNavItem } from "./sidebar-nav-item";
 
@@ -14,6 +16,10 @@ type SidebarProps = {
 
 export function Sidebar({ pathname }: SidebarProps) {
   const { sidebarCollapsed, toggleSidebar } = useUiStore();
+  const { data: currentUser } = useCurrentUserQuery();
+  const visibleNavigationItems = navigationItems.filter((item) =>
+    item.requiredPermission ? hasPermission(currentUser, item.requiredPermission) : true,
+  );
 
   return (
     <motion.aside
@@ -47,7 +53,7 @@ export function Sidebar({ pathname }: SidebarProps) {
       </div>
 
       <nav className="flex flex-1 flex-col gap-1">
-        {navigationItems.map((item) => {
+        {visibleNavigationItems.map((item) => {
           const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
           return (
             <SidebarNavItem

@@ -1,6 +1,5 @@
 "use client";
 
-import { format } from "date-fns";
 import Link from "next/link";
 import { CalendarClock, RefreshCw } from "lucide-react";
 import { useSearchParams } from "next/navigation";
@@ -30,7 +29,6 @@ import { AppointmentMobileCard } from "./appointment-mobile-card";
 import { AppointmentsTable } from "./appointments-table";
 import type { AppointmentRecord, AppointmentStatus } from "../types/appointment.types";
 
-const today = format(new Date(), "yyyy-MM-dd");
 const statusOptions = [
   { label: "All statuses", value: "" },
   { label: "Pending", value: "pending" },
@@ -44,8 +42,8 @@ const statusOptions = [
   { label: "Rescheduled", value: "rescheduled" },
 ];
 
-function buildDateTimeRange(date: string, isEnd = false) {
-  return new Date(`${date}T${isEnd ? "23:59:59" : "00:00:00"}`).toISOString();
+function getLocalDateTime(date: string, isEnd = false) {
+  return date ? new Date(`${date}T${isEnd ? "23:59:59" : "00:00:00"}`).getTime() : null;
 }
 
 export function AppointmentsListScreen() {
@@ -64,8 +62,8 @@ export function AppointmentsListScreen() {
     facility_specialty_id: "",
     practitioner_id: "",
     patient_id: "",
-    starts_from: today,
-    ends_to: today,
+    starts_from: "",
+    ends_to: "",
   });
 
   const canViewAppointments = hasPermission(currentUser, "scheduling_appointment.view");
@@ -94,18 +92,12 @@ export function AppointmentsListScreen() {
       is_active: true,
       search: debouncedSearch || undefined,
     },
-    { enabled: Boolean(organizationId) },
+    { enabled: hasScope },
   );
 
   const appointmentsQuery = useAppointmentsQuery(
     {
       facility_id: scopedFacilityId,
-      patient_id: filters.patient_id || undefined,
-      practitioner_id: filters.practitioner_id || undefined,
-      facility_specialty_id: filters.facility_specialty_id || undefined,
-      status: filters.status || undefined,
-      starts_from: buildDateTimeRange(filters.starts_from),
-      ends_to: buildDateTimeRange(filters.ends_to, true),
     },
     { enabled: canViewAppointments && hasScope },
   );
@@ -128,6 +120,68 @@ export function AppointmentsListScreen() {
       ),
     [patientSummaryQueries],
   );
+  const filteredAppointments = useMemo(() => {
+    const searchValue = debouncedSearch.trim().toLowerCase();
+    const patientSearchValue = debouncedPatientSearch.trim().toLowerCase();
+    const startsFrom = getLocalDateTime(filters.starts_from);
+    const endsTo = getLocalDateTime(filters.ends_to, true);
+    const selectedPractitioner = filters.practitioner_id
+      ? practitionersQuery.data?.find((practitioner) => practitioner.id === filters.practitioner_id)
+      : undefined;
+
+    return (appointmentsQuery.data ?? []).filter((appointment) => {
+      const patientName = patientNames[appointment.patient] ?? "";
+      const scheduledStart = new Date(appointment.scheduled_start).getTime();
+      const matchesFacility = !filters.facility_id || appointment.facility === filters.facility_id;
+      const matchesSpecialty = !filters.facility_specialty_id || appointment.facility_specialty === filters.facility_specialty_id;
+      const matchesPractitioner =
+        !filters.practitioner_id ||
+        appointment.practitioner_facility_assignment === filters.practitioner_id ||
+        appointment.practitioner_number === selectedPractitioner?.practitioner_number;
+      const matchesPatient = !filters.patient_id || appointment.patient === filters.patient_id;
+      const matchesStatus = !filters.status || appointment.status === filters.status;
+      const matchesDateFrom = startsFrom === null || scheduledStart >= startsFrom;
+      const matchesDateTo = endsTo === null || scheduledStart <= endsTo;
+      const searchable = [
+        appointment.appointment_number,
+        appointment.facility_name,
+        appointment.specialty_name,
+        appointment.practitioner_number,
+        appointment.status,
+        patientName,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      const matchesSearch = !searchValue || searchable.includes(searchValue);
+      const matchesPatientSearch = !patientSearchValue || patientName.toLowerCase().includes(patientSearchValue);
+
+      return (
+        matchesFacility &&
+        matchesSpecialty &&
+        matchesPractitioner &&
+        matchesPatient &&
+        matchesStatus &&
+        matchesDateFrom &&
+        matchesDateTo &&
+        matchesSearch &&
+        matchesPatientSearch
+      );
+    });
+  }, [
+    appointmentsQuery.data,
+    debouncedPatientSearch,
+    debouncedSearch,
+    filters.ends_to,
+    filters.facility_id,
+    filters.facility_specialty_id,
+    filters.patient_id,
+    filters.practitioner_id,
+    filters.starts_from,
+    filters.status,
+    patientNames,
+    practitionersQuery.data,
+  ]);
 
   if (isUserLoading) {
     return <LoadingState title="Loading appointments" description="Preparing the scheduling workspace." />;
@@ -166,7 +220,7 @@ export function AppointmentsListScreen() {
               <SelectField label="Facility" options={[{ label: "All facilities", value: "" }, ...(facilityOptions ?? []).map((facility) => ({ label: facility.name, value: facility.id }))]} value={filters.facility_id} onChange={(event) => setFilters((current) => ({ ...current, facility_id: event.target.value, facility_specialty_id: "", practitioner_id: "" }))} disabled={!hasScope} />
               <SelectField label="Specialty" options={[{ label: "All services", value: "" }, ...(specialtiesQuery.data ?? []).map((specialty) => ({ label: specialty.specialty_name, value: specialty.id }))]} value={filters.facility_specialty_id} onChange={(event) => setFilters((current) => ({ ...current, facility_specialty_id: event.target.value }))} disabled={!hasScope} />
               <SelectField label="Practitioner" options={[{ label: "All practitioners", value: "" }, ...(practitionersQuery.data ?? []).map((practitioner) => ({ label: `${practitioner.first_name} ${practitioner.last_name}`, value: practitioner.id }))]} value={filters.practitioner_id} onChange={(event) => setFilters((current) => ({ ...current, practitioner_id: event.target.value }))} disabled={!hasScope} />
-              <TextInputField label="Practitioner search" placeholder="Search practitioner name" value={searchText} onChange={(event) => setSearchText(event.target.value)} />
+              <TextInputField label="Search appointments" placeholder="Appointment, facility, specialty, practitioner" value={searchText} onChange={(event) => setSearchText(event.target.value)} />
               <TextInputField label="Patient search" placeholder="Search patient name locally" value={patientSearch} onChange={(event) => setPatientSearch(event.target.value)} />
               <SelectField label="Patient match" options={[{ label: "All patients", value: "" }, ...Object.entries(patientNames).filter(([, name]) => name.toLowerCase().includes(debouncedPatientSearch.toLowerCase())).map(([id, name]) => ({ label: name, value: id }))]} value={filters.patient_id} onChange={(event) => setFilters((current) => ({ ...current, patient_id: event.target.value }))} disabled={!hasScope} />
             </div>
@@ -210,14 +264,19 @@ export function AppointmentsListScreen() {
             </div>
           </div>
         ) : null}
-        {hasScope && !appointmentsQuery.isLoading && !appointmentsQuery.error && !appointmentsQuery.data?.length ? (
+        {hasScope && !appointmentsQuery.isLoading && !appointmentsQuery.error && !filteredAppointments.length ? (
           <EmptyState title="No appointments found" description="Try adjusting the filters or create a new appointment." />
         ) : null}
-        {hasScope && appointmentsQuery.data?.length ? (
+        {hasScope && !appointmentsQuery.isLoading && !appointmentsQuery.error ? (
           <div className="space-y-4">
-            <AppointmentsTable appointments={appointmentsQuery.data} patientNames={patientNames} onCancel={handleCancel} />
+            <AppointmentsTable
+              appointments={filteredAppointments}
+              patientNames={patientNames}
+              onCancel={handleCancel}
+              emptyMessage="No appointments match the selected filters."
+            />
             <div className="space-y-4 md:hidden">
-              {appointmentsQuery.data.map((appointment) => (
+              {filteredAppointments.map((appointment) => (
                 <AppointmentMobileCard key={appointment.id} appointment={appointment} patientName={patientNames[appointment.patient]} onCancel={handleCancel} />
               ))}
             </div>

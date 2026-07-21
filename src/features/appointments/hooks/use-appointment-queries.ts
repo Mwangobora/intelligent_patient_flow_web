@@ -86,7 +86,7 @@ export function usePatientsLookupQuery(
 ) {
   return useAppointmentsQueryBase<PatientLookupRecord[]>(
     [...queryKeys.patients.lists(), "lookup", buildScopeKey(params)],
-    () => appointmentsApiService.listPatients(params as { organization_id: string; registered_facility_id?: string; search?: string; is_active?: boolean }),
+    () => appointmentsApiService.listPatients(params),
     { enabled: Boolean(params.organization_id) && options?.enabled !== false },
   );
 }
@@ -117,7 +117,7 @@ export function useFacilitiesLookupQuery(
 ) {
   return useAppointmentsQueryBase<FacilityLookupRecord[]>(
     [...queryKeys.facilities.lists(), "lookup", buildScopeKey(params)],
-    () => appointmentsApiService.listFacilities(params as { organization_id: string; search?: string; is_active?: boolean }),
+    () => appointmentsApiService.listFacilities(params),
     { enabled: Boolean(params.organization_id) && options?.enabled !== false },
   );
 }
@@ -139,7 +139,7 @@ export function usePractitionersLookupQuery(
 ) {
   return useAppointmentsQueryBase<PractitionerLookupRecord[]>(
     [...queryKeys.practitioners.lists(), "lookup", buildScopeKey(params)],
-    () => appointmentsApiService.listPractitioners(params as { organization_id: string; facility_id?: string; search?: string; is_active?: boolean }),
-    { enabled: Boolean(params.organization_id) && options?.enabled !== false },
+    () => appointmentsApiService.listPractitioners(params),
+    { enabled: options?.enabled },
   );
 }

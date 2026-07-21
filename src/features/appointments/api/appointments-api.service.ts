@@ -79,7 +79,7 @@ class AppointmentApiService {
   }
 
   async listPatients(params: {
-    organization_id: string;
+    organization_id?: string;
     registered_facility_id?: string;
     search?: string;
     is_active?: boolean;
@@ -96,7 +96,7 @@ class AppointmentApiService {
   }
 
   async listFacilities(params: {
-    organization_id: string;
+    organization_id?: string;
     search?: string;
     is_active?: boolean;
   }): Promise<FacilityLookupRecord[]> {
@@ -121,7 +121,7 @@ class AppointmentApiService {
   }
 
   async listPractitioners(params: {
-    organization_id: string;
+    organization_id?: string;
     facility_id?: string;
     search?: string;
     is_active?: boolean;

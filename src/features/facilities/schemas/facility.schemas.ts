@@ -17,6 +17,11 @@ export const facilitySchema = z.object({
   is_primary: z.boolean().optional(),
 });
 
+export const facilityTypeSchema = z.object({
+  name: requiredText("Facility type name"),
+  description: optionalText,
+});
+
 export const departmentSchema = z.object({
   name: requiredText("Department name"),
   parent_department_id: optionalText,

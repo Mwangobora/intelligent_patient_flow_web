@@ -28,62 +28,62 @@ function invalidateSettings(queryClient: ReturnType<typeof useQueryClient>) {
 
 export function useCreateOrganizationSettingsMutation() {
   const queryClient = useQueryClient();
-  return useMutation({ mutationFn: (payload: OrganizationPayload) => settingsApiService.createOrganization(payload), onSuccess: () => { toast.success("Organization created."); invalidateSettings(queryClient); }, onError: (error) => toast.error(friendlySettingsError(error)) });
+  return useMutation({ mutationFn: (payload: OrganizationPayload) => settingsApiService.createOrganization(payload), onSuccess: () => { toast.success("Organization created successfully."); invalidateSettings(queryClient); }, onError: (error) => toast.error(friendlySettingsError(error)) });
 }
 
 export function useUpdateOrganizationSettingsMutation(id?: string) {
   const queryClient = useQueryClient();
-  return useMutation({ mutationFn: (payload: OrganizationPayload) => settingsApiService.updateOrganization(id!, payload), onSuccess: () => { toast.success("Organization updated."); invalidateSettings(queryClient); }, onError: (error) => toast.error(friendlySettingsError(error)) });
+  return useMutation({ mutationFn: (payload: OrganizationPayload) => settingsApiService.updateOrganization(id!, payload), onSuccess: () => { toast.success("Organization updated successfully."); invalidateSettings(queryClient); }, onError: (error) => toast.error(friendlySettingsError(error)) });
 }
 
 export function useDeactivateOrganizationSettingsMutation() {
   const queryClient = useQueryClient();
-  return useMutation({ mutationFn: (id: string) => settingsApiService.deactivateOrganization(id), onSuccess: () => { toast.success("Organization deactivated."); invalidateSettings(queryClient); }, onError: (error) => toast.error(friendlySettingsError(error)) });
+  return useMutation({ mutationFn: (id: string) => settingsApiService.deactivateOrganization(id), onSuccess: () => { toast.success("Organization deactivated successfully."); invalidateSettings(queryClient); }, onError: (error) => toast.error(friendlySettingsError(error)) });
 }
 
 export function useCreateSettingsUserMutation() {
   const queryClient = useQueryClient();
-  return useMutation({ mutationFn: (payload: UserPayload) => settingsApiService.createUser(payload), onSuccess: () => { toast.success("User created."); invalidateSettings(queryClient); }, onError: (error) => toast.error(friendlySettingsError(error)) });
+  return useMutation({ mutationFn: (payload: UserPayload) => settingsApiService.createUser(payload), onSuccess: () => { toast.success("User created successfully."); invalidateSettings(queryClient); }, onError: (error) => toast.error(friendlySettingsError(error)) });
 }
 
 export function useUpdateSettingsUserMutation(id?: string) {
   const queryClient = useQueryClient();
-  return useMutation({ mutationFn: (payload: Partial<UserPayload>) => settingsApiService.updateUser(id!, payload), onSuccess: () => { toast.success("User updated."); invalidateSettings(queryClient); }, onError: (error) => toast.error(friendlySettingsError(error)) });
+  return useMutation({ mutationFn: (payload: Partial<UserPayload>) => settingsApiService.updateUser(id!, payload), onSuccess: () => { toast.success("User updated successfully."); invalidateSettings(queryClient); }, onError: (error) => toast.error(friendlySettingsError(error)) });
 }
 
 export function useDeactivateSettingsUserMutation() {
   const queryClient = useQueryClient();
-  return useMutation({ mutationFn: (id: string) => settingsApiService.deactivateUser(id), onSuccess: () => { toast.success("User deactivated."); invalidateSettings(queryClient); }, onError: (error) => toast.error(friendlySettingsError(error)) });
+  return useMutation({ mutationFn: (id: string) => settingsApiService.deactivateUser(id), onSuccess: () => { toast.success("User deactivated successfully."); invalidateSettings(queryClient); }, onError: (error) => toast.error(friendlySettingsError(error)) });
 }
 
 export function useCreateSettingsRoleMutation() {
   const queryClient = useQueryClient();
-  return useMutation({ mutationFn: (payload: RolePayload) => settingsApiService.createRole(payload), onSuccess: () => { toast.success("Role created."); invalidateSettings(queryClient); }, onError: (error) => toast.error(friendlySettingsError(error)) });
+  return useMutation({ mutationFn: (payload: RolePayload) => settingsApiService.createRole(payload), onSuccess: () => { toast.success("Role created successfully."); invalidateSettings(queryClient); }, onError: (error) => toast.error(friendlySettingsError(error)) });
 }
 
 export function useUpdateSettingsRoleMutation(id?: string) {
   const queryClient = useQueryClient();
-  return useMutation({ mutationFn: (payload: Partial<RolePayload>) => settingsApiService.updateRole(id!, payload), onSuccess: () => { toast.success("Role updated."); invalidateSettings(queryClient); }, onError: (error) => toast.error(friendlySettingsError(error)) });
+  return useMutation({ mutationFn: (payload: Partial<RolePayload>) => settingsApiService.updateRole(id!, payload), onSuccess: () => { toast.success("Role updated successfully."); invalidateSettings(queryClient); }, onError: (error) => toast.error(friendlySettingsError(error)) });
 }
 
 export function useDeactivateSettingsRoleMutation() {
   const queryClient = useQueryClient();
-  return useMutation({ mutationFn: (id: string) => settingsApiService.deactivateRole(id), onSuccess: () => { toast.success("Role deactivated."); invalidateSettings(queryClient); }, onError: (error) => toast.error(friendlySettingsError(error)) });
+  return useMutation({ mutationFn: (id: string) => settingsApiService.deactivateRole(id), onSuccess: () => { toast.success("Role deactivated successfully."); invalidateSettings(queryClient); }, onError: (error) => toast.error(friendlySettingsError(error)) });
 }
 
 export function useCreateSettingsPermissionMutation() {
   const queryClient = useQueryClient();
-  return useMutation({ mutationFn: (payload: PermissionPayload) => settingsApiService.createPermission(payload), onSuccess: () => { toast.success("Permission created."); invalidateSettings(queryClient); }, onError: (error) => toast.error(friendlySettingsError(error)) });
+  return useMutation({ mutationFn: (payload: PermissionPayload) => settingsApiService.createPermission(payload), onSuccess: () => { toast.success("Permission created successfully."); invalidateSettings(queryClient); }, onError: (error) => toast.error(friendlySettingsError(error)) });
 }
 
 export function useUpdateSettingsPermissionMutation(id?: string) {
   const queryClient = useQueryClient();
-  return useMutation({ mutationFn: (payload: Partial<PermissionPayload>) => settingsApiService.updatePermission(id!, payload), onSuccess: () => { toast.success("Permission updated."); invalidateSettings(queryClient); }, onError: (error) => toast.error(friendlySettingsError(error)) });
+  return useMutation({ mutationFn: (payload: Partial<PermissionPayload>) => settingsApiService.updatePermission(id!, payload), onSuccess: () => { toast.success("Permission updated successfully."); invalidateSettings(queryClient); }, onError: (error) => toast.error(friendlySettingsError(error)) });
 }
 
 export function useDeactivateSettingsPermissionMutation() {
   const queryClient = useQueryClient();
-  return useMutation({ mutationFn: (id: string) => settingsApiService.deactivatePermission(id), onSuccess: () => { toast.success("Permission deactivated."); invalidateSettings(queryClient); }, onError: (error) => toast.error(friendlySettingsError(error)) });
+  return useMutation({ mutationFn: (id: string) => settingsApiService.deactivatePermission(id), onSuccess: () => { toast.success("Permission deactivated successfully."); invalidateSettings(queryClient); }, onError: (error) => toast.error(friendlySettingsError(error)) });
 }
 
 export function useGrantRolePermissionMutation(roleId?: string) {
@@ -103,22 +103,22 @@ export function useCreateMembershipMutation() {
 
 export function useDeactivateMembershipMutation() {
   const queryClient = useQueryClient();
-  return useMutation({ mutationFn: (id: string) => settingsApiService.deactivateMembership(id), onSuccess: () => { toast.success("Membership deactivated."); invalidateSettings(queryClient); }, onError: (error) => toast.error(friendlySettingsError(error)) });
+  return useMutation({ mutationFn: (id: string) => settingsApiService.deactivateMembership(id), onSuccess: () => { toast.success("Membership deactivated successfully."); invalidateSettings(queryClient); }, onError: (error) => toast.error(friendlySettingsError(error)) });
 }
 
 export function useEndMembershipMutation() {
   const queryClient = useQueryClient();
-  return useMutation({ mutationFn: (id: string) => settingsApiService.endMembership(id), onSuccess: () => { toast.success("Membership ended."); invalidateSettings(queryClient); }, onError: (error) => toast.error(friendlySettingsError(error)) });
+  return useMutation({ mutationFn: (id: string) => settingsApiService.endMembership(id), onSuccess: () => { toast.success("Membership ended successfully."); invalidateSettings(queryClient); }, onError: (error) => toast.error(friendlySettingsError(error)) });
 }
 
 export function useAssignRoleToUserMutation() {
   const queryClient = useQueryClient();
-  return useMutation({ mutationFn: (payload: Record<string, unknown>) => settingsApiService.assignRoleToUser(payload), onSuccess: () => { toast.success("Role assigned to user."); invalidateSettings(queryClient); }, onError: (error) => toast.error(friendlySettingsError(error)) });
+  return useMutation({ mutationFn: (payload: Record<string, unknown>) => settingsApiService.assignRoleToUser(payload), onSuccess: () => { toast.success("Role assigned to user successfully."); invalidateSettings(queryClient); }, onError: (error) => toast.error(friendlySettingsError(error)) });
 }
 
 export function useRevokeRoleAssignmentMutation() {
   const queryClient = useQueryClient();
-  return useMutation({ mutationFn: (assignmentId: string) => settingsApiService.revokeRoleAssignment(assignmentId), onSuccess: () => { toast.success("Role assignment revoked."); invalidateSettings(queryClient); }, onError: (error) => toast.error(friendlySettingsError(error)) });
+  return useMutation({ mutationFn: (assignmentId: string) => settingsApiService.revokeRoleAssignment(assignmentId), onSuccess: () => { toast.success("Role assignment revoked successfully."); invalidateSettings(queryClient); }, onError: (error) => toast.error(friendlySettingsError(error)) });
 }
 
 export function useSaveFlowSettingsMutation(existingId?: string) {
@@ -132,5 +132,5 @@ export function useUpdateProfileMutation() {
 }
 
 export function useChangePasswordMutation() {
-  return useMutation({ mutationFn: (payload: { old_password: string; new_password: string }) => settingsApiService.changePassword(payload), onSuccess: () => toast.success("Password changed."), onError: (error) => toast.error(friendlySettingsError(error)) });
+  return useMutation({ mutationFn: (payload: { old_password: string; new_password: string }) => settingsApiService.changePassword(payload), onSuccess: () => toast.success("Password changed successfully."), onError: (error) => toast.error(friendlySettingsError(error)) });
 }

@@ -76,7 +76,7 @@ export function useDeactivatePatientMutation() {
   return useMutation({
     mutationFn: (patientId: string) => patientsApiService.deactivatePatient(patientId),
     onSuccess: (patient) => {
-      toast.success("Patient deactivated.");
+      toast.success("Patient deactivated sucessifully.");
       invalidatePatientQueries(queryClient, patient.id);
     },
     onError: (error) => toast.error(getPatientFriendlyError(error)),
@@ -89,7 +89,7 @@ export function useCreatePatientIdentifierMutation(patientId?: string) {
     mutationFn: (payload: CreatePatientIdentifierPayload) =>
       patientsApiService.createPatientIdentifier(patientId!, payload),
     onSuccess: () => {
-      toast.success("Patient identifier added.");
+      toast.success("Patient identifier added successifully.");
       invalidatePatientQueries(queryClient, patientId);
     },
     onError: (error) => toast.error(getPatientFriendlyError(error)),
@@ -113,7 +113,7 @@ export function useSetPrimaryPatientIdentifierMutation(patientId?: string) {
   return useMutation({
     mutationFn: (identifierId: string) => patientsApiService.setPrimaryPatientIdentifier(identifierId),
     onSuccess: () => {
-      toast.success("Primary identifier updated.");
+      toast.success("Primary identifier updated successifully.");
       invalidatePatientQueries(queryClient, patientId);
     },
     onError: (error) => toast.error(getPatientFriendlyError(error)),
@@ -125,7 +125,7 @@ export function useDeactivatePatientIdentifierMutation(patientId?: string) {
   return useMutation({
     mutationFn: (identifierId: string) => patientsApiService.deactivatePatientIdentifier(identifierId),
     onSuccess: () => {
-      toast.success("Patient identifier deactivated.");
+      toast.success("Patient identifier deactivated successifully.");
       invalidatePatientQueries(queryClient, patientId);
     },
     onError: (error) => toast.error(getPatientFriendlyError(error)),
@@ -138,7 +138,7 @@ export function useCreatePatientAddressMutation(patientId?: string) {
     mutationFn: (payload: CreatePatientAddressPayload) =>
       patientsApiService.createPatientAddress(patientId!, payload),
     onSuccess: () => {
-      toast.success("Address added.");
+      toast.success("Address added successifully.");
       invalidatePatientQueries(queryClient, patientId);
     },
     onError: (error) => toast.error(getPatientFriendlyError(error)),
@@ -151,7 +151,7 @@ export function useUpdatePatientAddressMutation(patientId?: string) {
     mutationFn: ({ id, payload }: { id: string; payload: UpdatePatientAddressPayload }) =>
       patientsApiService.updatePatientAddress(id, payload),
     onSuccess: () => {
-      toast.success("Address updated.");
+      toast.success("Address updated successifully.");
       invalidatePatientQueries(queryClient, patientId);
     },
     onError: (error) => toast.error(getPatientFriendlyError(error)),
@@ -163,7 +163,7 @@ export function useSetPrimaryPatientAddressMutation(patientId?: string) {
   return useMutation({
     mutationFn: (addressId: string) => patientsApiService.setPrimaryPatientAddress(addressId),
     onSuccess: () => {
-      toast.success("Primary address updated.");
+      toast.success("Primary address updated successifully.");
       invalidatePatientQueries(queryClient, patientId);
     },
     onError: (error) => toast.error(getPatientFriendlyError(error)),
@@ -176,7 +176,7 @@ export function useCreateRelatedPersonMutation(patientId?: string) {
     mutationFn: (payload: CreatePatientRelatedPersonPayload) =>
       patientsApiService.createPatientRelatedPerson(patientId!, payload),
     onSuccess: () => {
-      toast.success("Related person added.");
+      toast.success("Related person added successifully.");
       invalidatePatientQueries(queryClient, patientId);
     },
     onError: (error) => toast.error(getPatientFriendlyError(error)),
@@ -189,7 +189,7 @@ export function useUpdateRelatedPersonMutation(patientId?: string) {
     mutationFn: ({ id, payload }: { id: string; payload: UpdatePatientRelatedPersonPayload }) =>
       patientsApiService.updatePatientRelatedPerson(id, payload),
     onSuccess: () => {
-      toast.success("Related person updated.");
+      toast.success("Related person updated successifully.");
       invalidatePatientQueries(queryClient, patientId);
     },
     onError: (error) => toast.error(getPatientFriendlyError(error)),
@@ -243,7 +243,7 @@ export function useSetPrimaryRelatedPersonContactMutation(patientId?: string) {
   return useMutation({
     mutationFn: (contactId: string) => patientsApiService.setPrimaryRelatedPersonContact(contactId),
     onSuccess: () => {
-      toast.success("Primary contact updated.");
+      toast.success("Primary contact updated successifuuly.");
       invalidatePatientQueries(queryClient, patientId);
     },
     onError: (error) => toast.error(getPatientFriendlyError(error)),
@@ -255,7 +255,7 @@ export function useDeactivateRelatedPersonContactMutation(patientId?: string) {
   return useMutation({
     mutationFn: (contactId: string) => patientsApiService.deactivateRelatedPersonContact(contactId),
     onSuccess: () => {
-      toast.success("Related person contact deactivated.");
+      toast.success("Related person contact deactivated successifully.");
       invalidatePatientQueries(queryClient, patientId);
     },
     onError: (error) => toast.error(getPatientFriendlyError(error)),

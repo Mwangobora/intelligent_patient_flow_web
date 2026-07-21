@@ -68,7 +68,6 @@ function roleInitialValues(role?: RoleRecord | null) {
   if (!role) return undefined;
   return {
     name: role.name,
-    code: role.code,
     description: role.description ?? "",
     organization_id: role.organization ?? "",
     facility_id: role.facility ?? "",
@@ -135,7 +134,7 @@ export function SettingsRolesScreen({ roleId }: { roleId?: string }) {
       <FormSheet open={showCreate} title="Create role" description="Create platform, organization, or facility scoped roles." onOpenChange={setShowCreate}>
         <RoleForm organizations={organizationsQuery.data ?? []} facilities={facilitiesQuery.data ?? []} isSubmitting={createMutation.isPending} onSubmit={async (values) => { await createMutation.mutateAsync(values); setShowCreate(false); }} />
       </FormSheet>
-      <FormSheet open={Boolean(editTarget)} title="Edit role" description="Update role name, code, description, or scope." onOpenChange={(open) => !open && setEditTarget(null)}>
+      <FormSheet open={Boolean(editTarget)} title="Edit role" description="Update role name, description, or scope." onOpenChange={(open) => !open && setEditTarget(null)}>
         <RoleForm organizations={organizationsQuery.data ?? []} facilities={facilitiesQuery.data ?? []} initialValues={roleInitialValues(editTarget)} isSubmitting={updateMutation.isPending} onSubmit={async (values) => { await updateMutation.mutateAsync(values); setEditTarget(null); }} />
       </FormSheet>
       <FormDialog open={showGrant} title="Grant permission" description="Assign a dynamic module.action permission to this role." onOpenChange={setShowGrant}>

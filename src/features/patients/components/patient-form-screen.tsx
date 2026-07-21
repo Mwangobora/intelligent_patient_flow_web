@@ -124,7 +124,7 @@ export function PatientFormScreen({ mode, patientId }: PatientFormScreenProps) {
                   date_of_birth_is_estimated: patient.date_of_birth_is_estimated,
                   sex_code: patient.sex_code ?? "",
                   email: patient.email ?? "",
-                  phone_number: patient.phone_number ?? "",
+                  phone_number: patient.phone_number ?? "+255",
                 }
               : undefined
           }

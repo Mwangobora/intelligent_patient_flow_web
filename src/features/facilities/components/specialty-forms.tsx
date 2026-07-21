@@ -24,7 +24,7 @@ export function SpecialtyForm({
   onSubmit: (payload: Payload) => Promise<void>;
 }) {
   const [error, setError] = useState("");
-  const [values, setValues] = useState({ name: "", code: "", parent_specialty_id: "", description: "" });
+  const [values, setValues] = useState({ name: "", parent_specialty_id: "", description: "" });
   const update = (key: keyof typeof values, value: string) => setValues((current) => ({ ...current, [key]: value }));
 
   return (
@@ -34,12 +34,11 @@ export function SpecialtyForm({
       const parsed = specialtySchema.safeParse(values);
       if (!parsed.success) return setError(parsed.error.issues[0]?.message ?? "Please check the specialty form.");
       await onSubmit(cleanPayload(parsed.data));
-      setValues({ name: "", code: "", parent_specialty_id: "", description: "" });
+      setValues({ name: "", parent_specialty_id: "", description: "" });
     }}>
       <FormErrorAlert message={error} />
       <div className="grid gap-4 lg:grid-cols-2">
         <TextInputField label="Specialty name" required value={values.name} onChange={(event) => update("name", event.target.value)} />
-        <TextInputField label="Manual code" value={values.code} onChange={(event) => update("code", event.target.value)} />
         <SelectField label="Parent specialty" value={values.parent_specialty_id} onChange={(event) => update("parent_specialty_id", event.target.value)} options={[{ label: "No parent", value: "" }, ...specialties.map((item) => ({ label: item.name, value: item.id }))]} />
         <TextareaField label="Description" value={values.description} onChange={(event) => update("description", event.target.value)} />
       </div>

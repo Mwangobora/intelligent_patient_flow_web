@@ -58,7 +58,7 @@ export function PatientForm({
       date_of_birth_is_estimated: initialValues?.date_of_birth_is_estimated ?? false,
       sex_code: initialValues?.sex_code ?? "",
       email: initialValues?.email ?? "",
-      phone_number: initialValues?.phone_number ?? "",
+      phone_number: initialValues?.phone_number ?? "+255",
       identifier_type_id: initialValues?.identifier_type_id ?? "",
       identifier_value: initialValues?.identifier_value ?? "",
       identifier_issuing_authority: initialValues?.identifier_issuing_authority ?? "",

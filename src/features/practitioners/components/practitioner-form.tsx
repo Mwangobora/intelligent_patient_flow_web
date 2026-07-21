@@ -41,7 +41,7 @@ export function PractitionerForm({
       last_name: initialValues?.last_name ?? "",
       preferred_name: initialValues?.preferred_name ?? "",
       email: initialValues?.email ?? "",
-      phone_number: initialValues?.phone_number ?? "",
+      phone_number: initialValues?.phone_number ?? "+255",
     },
   });
 

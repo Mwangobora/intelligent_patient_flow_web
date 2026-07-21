@@ -111,7 +111,6 @@ export type UserPayload = {
 
 export type RolePayload = {
   name: string;
-  code?: string | null;
   description?: string | null;
   organization_id?: UUID | null;
   facility_id?: UUID | null;

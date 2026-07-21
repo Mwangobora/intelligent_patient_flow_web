@@ -20,7 +20,7 @@ type DepartmentFormProps = {
 
 export function DepartmentForm({ departments, isSubmitting, onSubmit }: DepartmentFormProps) {
   const [error, setError] = useState("");
-  const [values, setValues] = useState({ name: "", code: "", parent_department_id: "", description: "" });
+  const [values, setValues] = useState({ name: "", parent_department_id: "", description: "" });
   const update = (key: keyof typeof values, value: string) => setValues((current) => ({ ...current, [key]: value }));
 
   return (
@@ -35,13 +35,12 @@ export function DepartmentForm({ departments, isSubmitting, onSubmit }: Departme
           return;
         }
         await onSubmit(cleanPayload(parsed.data));
-        setValues({ name: "", code: "", parent_department_id: "", description: "" });
+        setValues({ name: "", parent_department_id: "", description: "" });
       }}
     >
       <FormErrorAlert message={error} />
       <div className="grid gap-4 lg:grid-cols-2">
         <TextInputField label="Department name" required value={values.name} onChange={(event) => update("name", event.target.value)} />
-        <TextInputField label="Manual code" value={values.code} onChange={(event) => update("code", event.target.value)} />
         <SelectField
           label="Parent department"
           value={values.parent_department_id}

@@ -18,7 +18,7 @@ type PractitionerTypeFormProps = {
 export function PractitionerTypeForm({ isSubmitting = false, onSubmit }: PractitionerTypeFormProps) {
   const form = useForm<PractitionerTypeFormValues>({
     resolver: zodResolver(practitionerTypeSchema),
-    defaultValues: { name: "", code: "", description: "", requires_license: false },
+    defaultValues: { name: "", description: "", requires_license: false },
   });
 
   const errors = form.formState.errors;
@@ -34,7 +34,6 @@ export function PractitionerTypeForm({ isSubmitting = false, onSubmit }: Practit
       <FormErrorAlert message={errors.root?.message} />
       <div className="grid gap-4 md:grid-cols-2">
         <TextInputField label="Type name" error={errors.name?.message} {...form.register("name")} />
-        <TextInputField label="Code" error={errors.code?.message} helperText="Optional. Leave blank to let the backend generate it." {...form.register("code")} />
       </div>
       <TextareaField label="Description" rows={3} error={errors.description?.message} {...form.register("description")} />
       <label className="flex items-center gap-3 rounded-md border border-border bg-secondary/30 px-3 py-3 text-sm text-foreground">

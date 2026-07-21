@@ -15,7 +15,6 @@ type FacilityFormValues = {
   organization_id: string;
   facility_type_id: string;
   name: string;
-  code: string;
   license_number: string;
   email: string;
   phone_number: string;
@@ -40,10 +39,9 @@ export function FacilityForm({ organizations, facilityTypes, initialFacility, is
     organization_id: initialFacility?.organization ?? "",
     facility_type_id: initialFacility?.facility_type ?? "",
     name: initialFacility?.name ?? "",
-    code: initialFacility?.code ?? "",
     license_number: initialFacility?.license_number ?? "",
     email: initialFacility?.email ?? "",
-    phone_number: initialFacility?.phone_number ?? "",
+    phone_number: initialFacility?.phone_number ?? "+255",
     region: initialFacility?.region ?? "",
     district: initialFacility?.district ?? "",
     address_line1: initialFacility?.address_line1 ?? "",
@@ -85,7 +83,6 @@ export function FacilityForm({ organizations, facilityTypes, initialFacility, is
           options={[{ label: "Select facility type", value: "" }, ...facilityTypes.map((item) => ({ label: item.name, value: item.id }))]}
         />
         <TextInputField label="Facility name" required value={values.name} onChange={(event) => update("name", event.target.value)} />
-        <TextInputField label="Manual code" value={values.code} onChange={(event) => update("code", event.target.value)} helperText="Leave blank to let backend generate it." />
         <TextInputField label="License number" value={values.license_number} onChange={(event) => update("license_number", event.target.value)} />
         <TextInputField label="Email" type="email" value={values.email} onChange={(event) => update("email", event.target.value)} />
         <TextInputField label="Phone number" value={values.phone_number} onChange={(event) => update("phone_number", event.target.value)} />

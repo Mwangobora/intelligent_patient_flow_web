@@ -214,7 +214,6 @@ export function PractitionersListScreen() {
               onSubmit={async (values) => {
                 await createTypeMutation.mutateAsync({
                   name: values.name,
-                  code: values.code || null,
                   description: values.description || null,
                   requires_license: values.requires_license,
                 });

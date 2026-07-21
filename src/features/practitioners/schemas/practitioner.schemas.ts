@@ -5,7 +5,6 @@ const optionalText = z.string().max(250).optional().or(z.literal(""));
 
 export const practitionerTypeSchema = z.object({
   name: z.string().min(2, "Type name is required."),
-  code: z.string().max(50).optional().or(z.literal("")),
   description: optionalText,
   requires_license: z.boolean().optional(),
 });

@@ -27,9 +27,8 @@ function organizationInitialValues(organization?: OrganizationRecord | null) {
   return {
     name: organization.name,
     legal_name: organization.legal_name ?? "",
-    code: organization.code,
     email: organization.email ?? "",
-    phone_number: organization.phone_number ?? "",
+    phone_number: organization.phone_number ?? "+255",
     registration_number: organization.registration_number ?? "",
   };
 }

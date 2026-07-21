@@ -6,7 +6,6 @@ const requiredText = (label: string) => z.string().trim().min(1, `${label} is re
 export const organizationSchema = z.object({
   name: requiredText("Organization name"),
   legal_name: optionalText,
-  code: optionalText,
   email: optionalText,
   phone_number: optionalText,
   registration_number: optionalText,
@@ -23,7 +22,6 @@ export const userSchema = z.object({
 
 export const roleSchema = z.object({
   name: requiredText("Role name"),
-  code: optionalText,
   description: optionalText,
   organization_id: optionalText,
   facility_id: optionalText,

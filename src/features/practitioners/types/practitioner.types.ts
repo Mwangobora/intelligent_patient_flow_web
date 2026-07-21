@@ -271,13 +271,10 @@ export type PractitionerCreatePayload = {
 export type PractitionerUpdatePayload = Partial<PractitionerCreatePayload>;
 export type PractitionerTypeCreatePayload = {
   name: string;
-  code?: string | null;
   description?: string | null;
   requires_license?: boolean;
 };
-export type PractitionerTypeUpdatePayload = Partial<PractitionerTypeCreatePayload> & {
-  regenerate_code?: boolean;
-};
+export type PractitionerTypeUpdatePayload = Partial<PractitionerTypeCreatePayload>;
 export type FacilityAssignmentCreatePayload = {
   practitioner_id?: UUID;
   facility_id: UUID;

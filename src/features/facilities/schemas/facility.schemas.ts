@@ -7,7 +7,6 @@ export const facilitySchema = z.object({
   organization_id: requiredText("Organization"),
   facility_type_id: requiredText("Facility type"),
   name: requiredText("Facility name"),
-  code: optionalText,
   license_number: optionalText,
   email: optionalText,
   phone_number: optionalText,
@@ -20,14 +19,12 @@ export const facilitySchema = z.object({
 
 export const departmentSchema = z.object({
   name: requiredText("Department name"),
-  code: optionalText,
   parent_department_id: optionalText,
   description: optionalText,
 });
 
 export const specialtySchema = z.object({
   name: requiredText("Specialty name"),
-  code: optionalText,
   parent_specialty_id: optionalText,
   description: optionalText,
 });
@@ -45,7 +42,6 @@ export const servicePointSchema = z.object({
   service_point_type_id: requiredText("Service point type"),
   department_id: optionalText,
   name: requiredText("Service point name"),
-  code: optionalText,
   location_description: optionalText,
   floor: optionalText,
   display_order: z.coerce.number().int().min(0, "Display order must be 0 or more."),
@@ -54,7 +50,6 @@ export const servicePointSchema = z.object({
 export const consultationRoomSchema = z.object({
   department_id: optionalText,
   name: requiredText("Room name"),
-  code: optionalText,
   location_description: optionalText,
   floor: optionalText,
   capacity: z.coerce.number().int().min(1, "Capacity must be greater than 0."),

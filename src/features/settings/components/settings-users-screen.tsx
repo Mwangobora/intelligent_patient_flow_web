@@ -43,7 +43,7 @@ function userInitialValues(user?: UserRecord | null) {
   if (!user) return undefined;
   return {
     email: user.email ?? "",
-    phone_number: user.phone_number ?? "",
+    phone_number: user.phone_number ?? "+255",
     first_name: user.first_name,
     middle_name: user.middle_name ?? "",
     last_name: user.last_name,

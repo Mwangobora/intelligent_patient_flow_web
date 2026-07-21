@@ -185,5 +185,4 @@ export type ScheduleExceptionRecord = {
 export type FacilityPayload = Partial<FacilityRecord> & {
   organization_id?: UUID;
   facility_type_id?: UUID;
-  regenerate_code?: boolean;
 };
